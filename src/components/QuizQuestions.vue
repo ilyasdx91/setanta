@@ -207,14 +207,14 @@ onMounted(() => {
 })
 
 // Обработка наклона устройства
-let lastAlpha = null // Для хранения последнего значения угла
-const alphaThreshold = 15 // Порог для изменения угла (можно поэкспериментировать)
+let lastBeta = null // Для хранения последнего значения угла наклона
+const betaThreshold = 15 // Порог для изменения угла (можно поэкспериментировать)
 const debounceTimeout = 1000 // Задержка перед срабатыванием, чтобы избежать нескольких срабатываний подряд
 
 let lastTime = 0 // Время последнего срабатывания
 
 const checkOrientation = event => {
-  const alpha = event.alpha // угол наклона устройства
+  const beta = event.beta // угол наклона устройства по оси X (вперед/назад)
   const currentTime = Date.now()
 
   // Ожидаем достаточное время между срабатываниями (debounce)
@@ -222,8 +222,8 @@ const checkOrientation = event => {
   lastTime = currentTime
 
   // Проверка на изменение угла больше порогового значения
-  if (lastAlpha === null || Math.abs(alpha - lastAlpha) > alphaThreshold) {
-    const position = alpha < 180 ? 'correct' : 'incorrect' // Если угол меньше 180, то ответ правильный, иначе неправильный
+  if (lastBeta === null || Math.abs(beta - lastBeta) > betaThreshold) {
+    const position = beta > 0 ? 'incorrect' : 'correct' // Если наклон вперед (beta > 0), то неправильный ответ, иначе правильный
 
     // Устанавливаем статус ответа в зависимости от угла наклона
     if (position === 'correct') {
@@ -245,7 +245,7 @@ const checkOrientation = event => {
     }, 1000)
   }
 
-  lastAlpha = alpha // Сохраняем текущий угол наклона для следующей проверки
+  lastBeta = beta // Сохраняем текущий угол наклона для следующей проверки
 }
 
 onBeforeUnmount(() => {
