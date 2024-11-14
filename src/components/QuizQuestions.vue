@@ -209,9 +209,17 @@ onMounted(() => {
 // Обработка наклона устройства
 let lastAlpha = null // Для хранения последнего значения угла
 const alphaThreshold = 10 // Пороговое значение для изменения угла
+const debounceTimeout = 500 // Задержка для предотвращения слишком частых срабатываний
+
+let lastTime = 0 // Время последнего срабатывания
 
 const checkOrientation = event => {
   const alpha = event.alpha // угол наклона устройства
+  const currentTime = Date.now()
+
+  // Добавляем проверку, чтобы избежать слишком частых срабатываний
+  if (currentTime - lastTime < debounceTimeout) return
+  lastTime = currentTime
 
   // Если угол изменился достаточно, обновляем состояние
   if (lastAlpha === null || Math.abs(alpha - lastAlpha) > alphaThreshold) {
