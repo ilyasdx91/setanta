@@ -8,7 +8,9 @@
         Describe sport trophies. Just make sure your friends guess what trophy
         you are showing
       </p>
-      <button class="btn btn-yellow">Start</button>
+      <router-link :to="{ name: 'Game' }" class="btn btn-yellow">
+        Start
+      </router-link>
     </div>
   </div>
 </template>

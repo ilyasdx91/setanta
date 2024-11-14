@@ -1,6 +1,6 @@
 <template>
   <div class="header category-header">
-    <button class="btn settings">
+    <router-link :to="{ name: 'Home' }" class="btn">
       <svg
         width="28"
         height="28"
@@ -15,7 +15,7 @@
           fill="white"
         />
       </svg>
-    </button>
+    </router-link>
     <button class="btn">
       <svg
         width="28"

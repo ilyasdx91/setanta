@@ -13,10 +13,13 @@
       <h2>Categories</h2>
       <ul>
         <li v-for="(item, index) in 7" :key="index">
-          <div class="item">
+          <router-link
+            class="item"
+            :to="{ name: 'Category', params: { id: 1 } }"
+          >
             <img src="@/assets/img/image.png" alt="" />
             <p>Sport trophies</p>
-          </div>
+          </router-link>
         </li>
       </ul>
     </div>
