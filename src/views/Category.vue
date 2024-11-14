@@ -9,7 +9,7 @@
         you are showing
       </p>
       <router-link :to="{ name: 'Game' }" class="btn btn-yellow">
-        Start3
+        Start4
       </router-link>
     </div>
   </div>
