@@ -207,30 +207,39 @@ onMounted(() => {
 })
 
 // Обработка наклона устройства
+let lastAlpha = null // Для хранения последнего значения угла
+const alphaThreshold = 10 // Пороговое значение для изменения угла
+
 const checkOrientation = event => {
   const alpha = event.alpha // угол наклона устройства
 
-  // Определяем правильность ответа по углу наклона
-  const position = alpha < 180 ? 'correct' : 'incorrect'
+  // Если угол изменился достаточно, обновляем состояние
+  if (lastAlpha === null || Math.abs(alpha - lastAlpha) > alphaThreshold) {
+    // Определяем правильность ответа по углу наклона
+    const position = alpha < 180 ? 'correct' : 'incorrect'
 
-  // Устанавливаем статус ответа и цвет в зависимости от положения устройства
-  if (position === 'correct') {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964' // Зеленый цвет для правильного ответа
-  } else {
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55' // Красный цвет для неправильного ответа
+    // Устанавливаем статус ответа и цвет в зависимости от положения устройства
+    if (position === 'correct') {
+      answerStatus.value = 'correct'
+      currentAnswerColor.value = '#4CD964' // Зеленый цвет для правильного ответа
+    } else {
+      answerStatus.value = 'incorrect'
+      currentAnswerColor.value = '#FC5F55' // Красный цвет для неправильного ответа
+    }
+
+    // Задержка перед показом следующего вопроса
+    setTimeout(() => {
+      if (currentIndex.value < props.questions.length - 1) {
+        currentIndex.value++ // Увеличиваем индекс
+        showNextQuestion() // Показываем следующий вопрос
+      } else {
+        currentQuestion.value = null // Завершаем викторину
+      }
+    }, 1000)
   }
 
-  // Задержка перед показом следующего вопроса
-  setTimeout(() => {
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++ // Увеличиваем индекс
-      showNextQuestion() // Показываем следующий вопрос
-    } else {
-      currentQuestion.value = null // Завершаем викторину
-    }
-  }, 1000)
+  // Сохраняем текущее значение угла для следующего сравнения
+  lastAlpha = alpha
 }
 
 onBeforeUnmount(() => {
