@@ -208,8 +208,8 @@ onMounted(() => {
 
 // Обработка наклона устройства
 let lastAlpha = null // Для хранения последнего значения угла
-const alphaThreshold = 10 // Пороговое значение для изменения угла
-const debounceTimeout = 500 // Задержка для предотвращения слишком частых срабатываний
+const alphaThreshold = 15 // Порог для изменения угла (можно поэкспериментировать)
+const debounceTimeout = 1000 // Задержка перед срабатыванием, чтобы избежать нескольких срабатываний подряд
 
 let lastTime = 0 // Время последнего срабатывания
 
@@ -217,37 +217,35 @@ const checkOrientation = event => {
   const alpha = event.alpha // угол наклона устройства
   const currentTime = Date.now()
 
-  // Добавляем проверку, чтобы избежать слишком частых срабатываний
+  // Ожидаем достаточное время между срабатываниями (debounce)
   if (currentTime - lastTime < debounceTimeout) return
   lastTime = currentTime
 
-  // Если угол изменился достаточно, обновляем состояние
+  // Проверка на изменение угла больше порогового значения
   if (lastAlpha === null || Math.abs(alpha - lastAlpha) > alphaThreshold) {
-    // Определяем правильность ответа по углу наклона
-    const position = alpha < 180 ? 'correct' : 'incorrect'
+    const position = alpha < 180 ? 'correct' : 'incorrect' // Если угол меньше 180, то ответ правильный, иначе неправильный
 
-    // Устанавливаем статус ответа и цвет в зависимости от положения устройства
+    // Устанавливаем статус ответа в зависимости от угла наклона
     if (position === 'correct') {
       answerStatus.value = 'correct'
-      currentAnswerColor.value = '#4CD964' // Зеленый цвет для правильного ответа
+      currentAnswerColor.value = '#4CD964' // Зеленый для правильного ответа
     } else {
       answerStatus.value = 'incorrect'
-      currentAnswerColor.value = '#FC5F55' // Красный цвет для неправильного ответа
+      currentAnswerColor.value = '#FC5F55' // Красный для неправильного ответа
     }
 
-    // Задержка перед показом следующего вопроса
+    // Переход к следующему вопросу после небольшой задержки
     setTimeout(() => {
       if (currentIndex.value < props.questions.length - 1) {
-        currentIndex.value++ // Увеличиваем индекс
+        currentIndex.value++ // Увеличиваем индекс вопроса
         showNextQuestion() // Показываем следующий вопрос
       } else {
-        currentQuestion.value = null // Завершаем викторину
+        currentQuestion.value = null // Заканчиваем викторину
       }
     }, 1000)
   }
 
-  // Сохраняем текущее значение угла для следующего сравнения
-  lastAlpha = alpha
+  lastAlpha = alpha // Сохраняем текущий угол наклона для следующей проверки
 }
 
 onBeforeUnmount(() => {
