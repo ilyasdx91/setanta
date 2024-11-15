@@ -209,8 +209,8 @@ onMounted(() => {
 // Обработка наклона устройства
 let lastBeta = null // Последний угол наклона
 let lastTime = 0 // Последнее время срабатывания
-const betaThreshold = 30 // Угол для определения наклона
-const stableAngle = 20 // "Шумовой порог" - меньшее движение игнорируется
+const betaThreshold = 40 // Угол для определения наклона
+const stableAngle = 30 // "Шумовой порог" - меньшее движение игнорируется
 const debounceTimeout = 1500 // Задержка между срабатываниями
 const betaHistory = [] // История углов для сглаживания
 const maxHistoryLength = 10 // Сколько значений хранить для сглаживания
