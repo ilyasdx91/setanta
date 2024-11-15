@@ -210,15 +210,18 @@ onMounted(() => {
 let lastBeta = null // Последний угол наклона
 let lastTime = 0 // Последнее время срабатывания
 const betaThreshold = 40 // Угол для определения наклона
-const stableAngle = 30 // "Шумовой порог" - меньшее движение игнорируется
-const debounceTimeout = 1500 // Задержка между срабатываниями
+const stableAngle = 40 // "Шумовой порог" - меньшее движение игнорируется
+const debounceTimeout = 2000 // Задержка между срабатываниями
 const betaHistory = [] // История углов для сглаживания
-const maxHistoryLength = 10 // Сколько значений хранить для сглаживания
+const maxHistoryLength = 20 // Сколько значений хранить для сглаживания
 
-// Функция для вычисления среднего значения углов из истории
-const getSmoothedBeta = () => {
-  const sum = betaHistory.reduce((a, b) => a + b, 0)
-  return sum / betaHistory.length
+// Функция для вычисления медианы из истории углов
+const getMedianBeta = () => {
+  const sorted = [...betaHistory].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2
 }
 
 // Обработка наклона устройства
@@ -226,26 +229,30 @@ const checkOrientation = event => {
   const beta = event.beta // Угол наклона по оси X
   const currentTime = Date.now()
 
-  // Добавляем текущее значение в историю и вычисляем среднее
+  // Добавляем текущее значение в историю
   betaHistory.push(beta)
   if (betaHistory.length > maxHistoryLength) {
     betaHistory.shift() // Удаляем старые значения
   }
-  const smoothedBeta = getSmoothedBeta()
+
+  // Вычисляем медианное значение углов
+  const smoothedBeta = getMedianBeta()
 
   // Если устройство слишком горизонтально, ничего не делаем
   if (Math.abs(smoothedBeta) < stableAngle) return
 
-  // Если наклон меньше порога, ничего не делаем
+  // Если наклон незначительно изменился, игнорируем
   if (lastBeta !== null && Math.abs(smoothedBeta - lastBeta) < betaThreshold) {
     return
   }
 
-  // Дебаунс - предотвращаем срабатывание чаще, чем раз в debounceTimeout
+  // Дебаунс - предотвращаем частые срабатывания
   if (currentTime - lastTime < debounceTimeout) return
 
   // Определяем правильность ответа
-  const position = smoothedBeta > 0 ? 'incorrect' : 'correct'
+  const position =
+    smoothedBeta > 30 ? 'incorrect' : smoothedBeta < -30 ? 'correct' : null
+  if (!position) return
 
   if (position === 'correct') {
     answerStatus.value = 'correct'
@@ -258,7 +265,7 @@ const checkOrientation = event => {
   // Переход к следующему вопросу
   setTimeout(() => {
     if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++ // Следующий вопрос
+      currentIndex.value++
       showNextQuestion()
     } else {
       currentQuestion.value = null // Конец викторины
