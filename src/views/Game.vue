@@ -27,13 +27,11 @@ const showQuestions = () => {
 onMounted(() => {
   // Принудительно переворачиваем страницу в горизонтальную ориентацию
   document.body.classList.add('game-landscape')
-  console.log('game-landscape class added')
 })
 
 onBeforeUnmount(() => {
   // Убираем стиль при выходе с игры
   document.body.classList.remove('game-landscape')
-  console.log('game-landscape class removed')
 })
 </script>
 

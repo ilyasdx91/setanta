@@ -202,10 +202,8 @@ const handleClick = event => {
 }
 
 onMounted(() => {
-  if (showQuiz.value) {
-    // Добавляем слушатель только после показа вопросов
-    window.addEventListener('deviceorientation', checkOrientation)
-  }
+  showNextQuestion() // Покажите первый вопрос
+  window.addEventListener('deviceorientation', checkOrientation) // Слушаем изменение ориентации устройства
 })
 
 // Обработка наклона устройства
@@ -225,35 +223,50 @@ const getSmoothedBeta = () => {
 
 // Обработка наклона устройства
 const checkOrientation = event => {
-  if (!showQuiz.value) return // Не обрабатывать до начала викторины
-
-  const beta = event.beta // Угол наклона устройства
+  const beta = event.beta // Угол наклона по оси X
   const currentTime = Date.now()
 
-  // Игнорируем незначительные изменения
-  if (Math.abs(beta) < stableAngle) return
+  // Добавляем текущее значение в историю и вычисляем среднее
+  betaHistory.push(beta)
+  if (betaHistory.length > maxHistoryLength) {
+    betaHistory.shift() // Удаляем старые значения
+  }
+  const smoothedBeta = getSmoothedBeta()
 
-  // Проверяем время последнего срабатывания
+  // Если устройство слишком горизонтально, ничего не делаем
+  if (Math.abs(smoothedBeta) < stableAngle) return
+
+  // Если наклон меньше порога, ничего не делаем
+  if (lastBeta !== null && Math.abs(smoothedBeta - lastBeta) < betaThreshold) {
+    return
+  }
+
+  // Дебаунс - предотвращаем срабатывание чаще, чем раз в debounceTimeout
   if (currentTime - lastTime < debounceTimeout) return
 
   // Определяем правильность ответа
-  const position = beta > 30 ? 'incorrect' : beta < -30 ? 'correct' : null
-  if (!position) return // Если угол не подходит, ничего не делаем
+  const position = smoothedBeta > 0 ? 'incorrect' : 'correct'
 
-  answerStatus.value = position === 'correct' ? 'correct' : 'incorrect'
-  currentAnswerColor.value = position === 'correct' ? '#4CD964' : '#FC5F55'
+  if (position === 'correct') {
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964' // Зеленый
+  } else {
+    answerStatus.value = 'incorrect'
+    currentAnswerColor.value = '#FC5F55' // Красный
+  }
 
   // Переход к следующему вопросу
   setTimeout(() => {
     if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++
+      currentIndex.value++ // Следующий вопрос
       showNextQuestion()
     } else {
-      currentQuestion.value = null // Конец игры
+      currentQuestion.value = null // Конец викторины
     }
   }, 1000)
 
-  // Сохраняем последнее состояние
+  // Сохраняем последнее значение
+  lastBeta = smoothedBeta
   lastTime = currentTime
 }
 
