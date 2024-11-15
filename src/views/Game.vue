@@ -12,15 +12,15 @@ import QuizQuestions from '@/components/QuizQuestions.vue'
 
 const showQuiz = ref(false)
 
-function showQuestions() {
-  showQuiz.value = true // Показываем компонент с вопросами
-}
-
 const questions = ref([
   { id: 1, question: 'Что это?' },
   { id: 2, question: 'Где это?' },
   { id: 3, question: 'Как это?' },
 ])
+
+const showQuestions = () => {
+  showQuiz.value = true // Показать викторину после завершения отсчета
+}
 
 //====================================
 
