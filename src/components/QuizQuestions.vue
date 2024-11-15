@@ -181,6 +181,7 @@ const showNextQuestion = () => {
 }
 
 const handleClick = event => {
+  if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
   const position =
     event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
   if (position === 'correct') {
@@ -200,11 +201,19 @@ const handleClick = event => {
     }
   }, 1000)
 }
+//=====================================================
+
+const isQuizActive = ref(false) // Флаг для контроля активности викторины
 
 onMounted(() => {
-  showNextQuestion() // Покажите первый вопрос
-  window.addEventListener('deviceorientation', checkOrientation) // Слушаем изменение ориентации устройства
+  showNextQuestion() // Показ первого вопроса
+  window.addEventListener('deviceorientation', checkOrientation) // Слушаем изменения ориентации устройства
 })
+
+const startQuiz = () => {
+  isQuizActive.value = true // Активируем викторину
+  betaHistory.length = 0 // Очистить историю углов
+}
 
 // Обработка наклона устройства
 let lastBeta = null // Последний угол наклона
@@ -226,6 +235,8 @@ const getMedianBeta = () => {
 
 // Обработка наклона устройства
 const checkOrientation = event => {
+  if (!isQuizActive.value) return // Игнорируем, если викторина еще не началась
+
   const beta = event.beta // Угол наклона по оси X
   const currentTime = Date.now()
 
