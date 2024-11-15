@@ -207,34 +207,32 @@ onMounted(() => {
 })
 
 // Обработка наклона устройства
-let lastBeta = null // Для хранения последнего значения угла наклона
+let lastBeta = null // Хранит последнее значение угла наклона
 let lastTime = 0 // Время последнего срабатывания
-const betaThreshold = 15 // Порог для изменения угла (в градусах)
-const debounceTimeout = 1000 // Задержка между срабатываниями, чтобы избежать нескольких срабатываний подряд
-const stableTimeout = 500 // Минимальная стабильная задержка, чтобы устройство "успокоилось" перед отслеживанием наклона
+const betaThreshold = 30 // Угол наклона в 30 градусов
+const debounceTimeout = 1000 // Задержка между срабатываниями
+const stableAngle = 5 // Угол для проверки горизонтальности
 
 // Функция обработки события наклона устройства
 const checkOrientation = event => {
-  const beta = event.beta // угол наклона устройства по оси X (вперед/назад)
+  const beta = event.beta // Угол наклона устройства по оси X
   const currentTime = Date.now()
 
-  // Игнорируем маленькие изменения угла наклона (меньше порога)
+  // Проверяем, что угол наклона больше установленного порога
   if (Math.abs(beta - lastBeta) < betaThreshold) return
 
-  // Ожидаем, пока не пройдет время с последнего срабатывания (debounce)
+  // Ожидаем, пока не пройдет время с последнего срабатывания
   if (currentTime - lastTime < debounceTimeout) return
   lastTime = currentTime
 
-  // Сначала проверяем, что устройство стабилизировалось
-  if (Math.abs(beta) < 10) {
-    // Если устройство лежит практически горизонтально (угол наклона меньше 10), игнорируем событие
+  // Игнорируем небольшие наклоны, если устройство почти горизонтально (угол меньше 5 градусов)
+  if (Math.abs(beta) < stableAngle) {
     return
   }
 
-  // Срабатывание только при значительном наклоне
-  const position = beta > 0 ? 'incorrect' : 'correct' // Если наклон вперед (beta > 0), то неправильный ответ, иначе правильный
+  // Определяем правильность ответа в зависимости от угла наклона
+  const position = beta > 0 ? 'incorrect' : 'correct'
 
-  // Устанавливаем статус ответа в зависимости от угла наклона
   if (position === 'correct') {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964' // Зеленый для правильного ответа
@@ -243,18 +241,19 @@ const checkOrientation = event => {
     currentAnswerColor.value = '#FC5F55' // Красный для неправильного ответа
   }
 
-  // Переход к следующему вопросу после небольшой задержки
+  // Переход к следующему вопросу с задержкой
   setTimeout(() => {
     if (currentIndex.value < props.questions.length - 1) {
       currentIndex.value++ // Увеличиваем индекс вопроса
-      showNextQuestion() // Показываем следующий вопрос
+      showNextQuestion() // Показать следующий вопрос
     } else {
-      currentQuestion.value = null // Заканчиваем викторину
+      currentQuestion.value = null // Завершить викторину
     }
   }, 1000)
 
-  lastBeta = beta // Сохраняем текущий угол наклона для следующей проверки
+  lastBeta = beta // Обновляем значение угла
 }
+
 onBeforeUnmount(() => {
   window.removeEventListener('deviceorientation', checkOrientation)
 })
