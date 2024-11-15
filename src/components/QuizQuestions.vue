@@ -207,51 +207,67 @@ onMounted(() => {
 })
 
 // Обработка наклона устройства
-let lastBeta = null // Хранит последнее значение угла наклона
-let lastTime = 0 // Время последнего срабатывания
-const betaThreshold = 30 // Угол наклона в 30 градусов
-const debounceTimeout = 1000 // Задержка между срабатываниями
-const stableAngle = 5 // Угол для проверки горизонтальности
+let lastBeta = null // Последний угол наклона
+let lastTime = 0 // Последнее время срабатывания
+const betaThreshold = 30 // Угол для определения наклона
+const stableAngle = 10 // "Шумовой порог" - меньшее движение игнорируется
+const debounceTimeout = 1500 // Задержка между срабатываниями
+const betaHistory = [] // История углов для сглаживания
+const maxHistoryLength = 5 // Сколько значений хранить для сглаживания
 
-// Функция обработки события наклона устройства
+// Функция для вычисления среднего значения углов из истории
+const getSmoothedBeta = () => {
+  const sum = betaHistory.reduce((a, b) => a + b, 0)
+  return sum / betaHistory.length
+}
+
+// Обработка наклона устройства
 const checkOrientation = event => {
-  const beta = event.beta // Угол наклона устройства по оси X
+  const beta = event.beta // Угол наклона по оси X
   const currentTime = Date.now()
 
-  // Проверяем, что угол наклона больше установленного порога
-  if (Math.abs(beta - lastBeta) < betaThreshold) return
+  // Добавляем текущее значение в историю и вычисляем среднее
+  betaHistory.push(beta)
+  if (betaHistory.length > maxHistoryLength) {
+    betaHistory.shift() // Удаляем старые значения
+  }
+  const smoothedBeta = getSmoothedBeta()
 
-  // Ожидаем, пока не пройдет время с последнего срабатывания
-  if (currentTime - lastTime < debounceTimeout) return
-  lastTime = currentTime
+  // Если устройство слишком горизонтально, ничего не делаем
+  if (Math.abs(smoothedBeta) < stableAngle) return
 
-  // Игнорируем небольшие наклоны, если устройство почти горизонтально (угол меньше 5 градусов)
-  if (Math.abs(beta) < stableAngle) {
+  // Если наклон меньше порога, ничего не делаем
+  if (lastBeta !== null && Math.abs(smoothedBeta - lastBeta) < betaThreshold) {
     return
   }
 
-  // Определяем правильность ответа в зависимости от угла наклона
-  const position = beta > 0 ? 'incorrect' : 'correct'
+  // Дебаунс - предотвращаем срабатывание чаще, чем раз в debounceTimeout
+  if (currentTime - lastTime < debounceTimeout) return
+
+  // Определяем правильность ответа
+  const position = smoothedBeta > 0 ? 'incorrect' : 'correct'
 
   if (position === 'correct') {
     answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964' // Зеленый для правильного ответа
+    currentAnswerColor.value = '#4CD964' // Зеленый
   } else {
     answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55' // Красный для неправильного ответа
+    currentAnswerColor.value = '#FC5F55' // Красный
   }
 
-  // Переход к следующему вопросу с задержкой
+  // Переход к следующему вопросу
   setTimeout(() => {
     if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++ // Увеличиваем индекс вопроса
-      showNextQuestion() // Показать следующий вопрос
+      currentIndex.value++ // Следующий вопрос
+      showNextQuestion()
     } else {
-      currentQuestion.value = null // Завершить викторину
+      currentQuestion.value = null // Конец викторины
     }
   }, 1000)
 
-  lastBeta = beta // Обновляем значение угла
+  // Сохраняем последнее значение
+  lastBeta = smoothedBeta
+  lastTime = currentTime
 }
 
 onBeforeUnmount(() => {
