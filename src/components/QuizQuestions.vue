@@ -19,7 +19,7 @@
               />
             </svg>
           </i>
-          BACK
+          {{ $t('back') }}
         </router-link>
 
         <div class="right">
@@ -57,7 +57,7 @@
             {{ questionProgress }}
           </div>
 
-          <div class="timer">0:51</div>
+          <div class="timer">{{ formattedTime }}</div>
         </div>
       </div>
 
@@ -108,9 +108,9 @@
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
 
       <div class="question-footer">
-        progress-bar
+        <!-- progress-bar -->
         <router-link :to="{ name: 'Category', params: { id: 1 } }" class="btn">
-          FINISH
+          {{ $t('finish') }}
         </router-link>
       </div>
     </div>
@@ -146,6 +146,35 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import { useGameSettingsStore } from '@/stores/gameSettings'
+
+//==========================
+const gameSettings = useGameSettingsStore()
+
+// Таймер отсчета
+const timeLeft = ref(gameSettings.gameTime)
+const timerInterval = ref(null)
+
+// Форматирование времени для отображения
+const formattedTime = computed(() => {
+  const minutes = Math.floor(timeLeft.value / 60)
+  const seconds = timeLeft.value % 60
+  return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+})
+
+// Начало отсчета времени
+const startTimer = () => {
+  timerInterval.value = setInterval(() => {
+    if (timeLeft.value > 0) {
+      timeLeft.value--
+    } else {
+      clearInterval(timerInterval.value)
+      // Завершаем игру, когда время истекло
+      currentQuestion.value = null // Можно здесь реализовать завершение игры
+    }
+  }, 1000)
+}
+//==========================
 
 const props = defineProps({
   questions: {
@@ -206,8 +235,14 @@ const handleClick = event => {
 const isQuizActive = ref(false) // Флаг для контроля активности викторины
 
 onMounted(() => {
+  startTimer()
   showNextQuestion() // Показ первого вопроса
   window.addEventListener('deviceorientation', checkOrientation) // Слушаем изменения ориентации устройства
+})
+
+onBeforeUnmount(() => {
+  clearInterval(timerInterval.value)
+  window.removeEventListener('deviceorientation', checkOrientation)
 })
 
 const startQuiz = () => {
@@ -287,10 +322,6 @@ const checkOrientation = event => {
   lastBeta = smoothedBeta
   lastTime = currentTime
 }
-
-onBeforeUnmount(() => {
-  window.removeEventListener('deviceorientation', checkOrientation)
-})
 </script>
 
 <style scoped lang="scss">
@@ -318,6 +349,7 @@ onBeforeUnmount(() => {
     .btn {
       display: flex;
       align-items: center;
+      text-transform: uppercase;
 
       i {
         margin-right: 20px;
@@ -377,6 +409,7 @@ onBeforeUnmount(() => {
       font-weight: 700;
       color: #fdd106;
       text-align: center;
+      text-transform: uppercase;
     }
   }
 }

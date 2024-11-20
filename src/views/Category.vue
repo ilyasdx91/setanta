@@ -9,7 +9,7 @@
         you are showing
       </p>
       <router-link :to="{ name: 'Game' }" class="btn btn-yellow">
-        Start6
+        {{ $t('start') }}
       </router-link>
     </div>
   </div>

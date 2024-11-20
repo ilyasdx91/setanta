@@ -41,9 +41,10 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  position: relative;
 
   .video-background {
-    position: fixed;
+    position: absolute;
     right: 0;
     bottom: 0;
     min-width: 100%;
@@ -174,6 +175,102 @@ body {
     .btn-yellow {
       width: 100%;
       display: block;
+    }
+  }
+}
+
+.settings {
+  padding-top: 8px;
+
+  h1,
+  h2 {
+    font-weight: 700;
+    font-size: 28px;
+  }
+  h1 {
+    margin: 24px 0;
+  }
+
+  hr {
+    border-color: rgba(255, 255, 255, 0.36);
+    margin: 0 -16px 16px -16px;
+  }
+
+  h6 {
+    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .time-settings {
+    border: 1px solid #363636;
+    border-radius: 16px;
+    display: flex;
+    text-align: center;
+    margin-bottom: 16px;
+
+    .btn {
+      width: 25%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    span {
+      width: 50%;
+      border-left: 1px solid #363636;
+      border-right: 1px solid #363636;
+      font-size: 28px;
+      font-weight: 700;
+      padding: 26px 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+.faq {
+  padding-top: 8px;
+
+  h1,
+  h2 {
+    font-weight: 700;
+    font-size: 28px;
+  }
+  h1 {
+    margin: 24px 0;
+  }
+
+  p {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  .tilt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    .item {
+      margin-bottom: 40px;
+      span {
+        font-size: 16px;
+        font-weight: 600;
+
+        &.green {
+          color: #4cd964;
+        }
+        &.red {
+          color: #fc5f55;
+        }
+      }
     }
   }
 }

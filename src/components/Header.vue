@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="header">
-      <button class="btn settings">
+      <router-link :to="{ name: 'Settings' }" class="btn settings">
         <svg
           width="28"
           height="28"
@@ -16,7 +16,7 @@
             fill="white"
           />
         </svg>
-      </button>
+      </router-link>
       <div class="logo">
         <svg
           width="152"
@@ -96,7 +96,7 @@
           </g>
         </svg>
       </div>
-      <button class="btn">
+      <router-link :to="{ name: 'Faq' }" class="btn settings">
         <svg
           width="28"
           height="28"
@@ -111,7 +111,7 @@
             fill="white"
           />
         </svg>
-      </button>
+      </router-link>
     </div>
   </div>
 </template>

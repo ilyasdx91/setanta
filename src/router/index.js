@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import Category from '@/views/Category.vue'
 import Game from '@/views/Game.vue'
+import Settings from '@/views/Settings.vue'
+import Faq from '@/views/Faq.vue'
 
 const routes = [
   {
@@ -21,8 +23,20 @@ const routes = [
     component: Game,
     props: true,
   },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: Settings,
+    props: true,
+  },
+  {
+    path: '/faq',
+    name: 'Faq',
+    component: Faq,
+    props: true,
+  },
 ]
-
+// settings
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,

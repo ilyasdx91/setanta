@@ -16,7 +16,7 @@
         />
       </svg>
     </router-link>
-    <button class="btn">
+    <router-link :to="{ name: 'Faq' }" class="btn settings">
       <svg
         width="28"
         height="28"
@@ -31,6 +31,6 @@
           fill="white"
         />
       </svg>
-    </button>
+    </router-link>
   </div>
 </template>
