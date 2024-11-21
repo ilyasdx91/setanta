@@ -237,25 +237,6 @@ const handleClick = event => {
 
 //=====================================================
 
-const handleOrientation = position => {
-  const currentTime = Date.now()
-  if (currentTime - lastOrientationTime < 1500) return
-
-  if (position === 'correct') {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-    correctAnswers.value++
-  } else {
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55'
-  }
-
-  lastOrientationTime = currentTime // Обновляем lastOrientationTime после каждого ответа
-  setTimeout(showNextQuestion, 1000)
-}
-
-const betaHistory = ref([])
-
 const checkOrientation = event => {
   if (!isQuizActive.value || !currentQuestion.value) return
 
@@ -282,12 +263,6 @@ const startQuiz = () => {
   timeLeft.value = gameSettings.gameTime
   startTimer()
   isQuizActive.value = true
-}
-
-const finishGame = () => {
-  alert(
-    `Игра закончена! Правильных ответов: ${correctAnswers.value} из ${totalQuestions.value}`,
-  )
 }
 
 onMounted(() => {
