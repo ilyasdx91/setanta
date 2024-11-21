@@ -43,6 +43,7 @@ const accelerometer = computed(() => {
   return tg.Accelerometer
 })
 onMounted(() => {
+  tg.requestFullscreen()
   tg.Accelerometer.start()
   console.log(tg.Accelerometer.isStarted)
   console.log(tg.Accelerometer.x)
