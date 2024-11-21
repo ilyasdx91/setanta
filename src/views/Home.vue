@@ -1,6 +1,6 @@
 <template>
-  <Header />
   <div class="container">
+    <Header />
     <div v-if="!videoEnded" class="welcome">
       <div class="video-background">
         <video autoplay muted @ended="handleVideoEnd" id="myVideo">

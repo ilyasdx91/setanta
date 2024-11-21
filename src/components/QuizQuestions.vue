@@ -237,6 +237,7 @@ const isQuizActive = ref(false) // Флаг для контроля активн
 onMounted(() => {
   startTimer()
   showNextQuestion() // Показ первого вопроса
+  startQuiz()
   window.addEventListener('deviceorientation', checkOrientation) // Слушаем изменения ориентации устройства
 })
 
@@ -250,77 +251,29 @@ const startQuiz = () => {
   betaHistory.length = 0 // Очистить историю углов
 }
 
-// Обработка наклона устройства
-let lastBeta = null // Последний угол наклона
-let lastTime = 0 // Последнее время срабатывания
-const betaThreshold = 20 // Угол для определения наклона
-const stableAngle = 20 // "Шумовой порог" - меньшее движение игнорируется
-const debounceTimeout = 1000 // Задержка между срабатываниями
-const betaHistory = [] // История углов для сглаживания
-const maxHistoryLength = 20 // Сколько значений хранить для сглаживания
+const betaHistory = ref([]) // для хранения истории значений beta
 
-// Функция для вычисления медианы из истории углов
-const getMedianBeta = () => {
-  const sorted = [...betaHistory].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2
-}
-
-// Обработка наклона устройства
 const checkOrientation = event => {
-  if (!isQuizActive.value) return // Игнорируем, если викторина еще не началась
+  if (!isQuizActive.value || !currentQuestion.value) return
 
-  const beta = event.beta // Угол наклона по оси X
-  const currentTime = Date.now()
+  betaHistory.push(event.beta) // Добавляем текущее значение beta в историю
 
-  // Добавляем текущее значение в историю
-  betaHistory.push(beta)
-  if (betaHistory.length > maxHistoryLength) {
-    betaHistory.shift() // Удаляем старые значения
+  // проверяем последние 5 значений
+  if (betaHistory.length > 5) {
+    betaHistory.shift() // удаляем первое значение если больше 5
   }
 
-  // Вычисляем медианное значение углов
-  const smoothedBeta = getMedianBeta()
+  // усредняем последние 5 значений для сглаживания
+  const avgBeta =
+    betaHistory.reduce((acc, val) => acc + val, 0) / betaHistory.length
 
-  // Если устройство слишком горизонтально, ничего не делаем
-  if (Math.abs(smoothedBeta) < stableAngle) return
-
-  // Если наклон незначительно изменился, игнорируем
-  if (lastBeta !== null && Math.abs(smoothedBeta - lastBeta) < betaThreshold) {
-    return
+  if (avgBeta > 30) {
+    // Наклон вверх
+    handleClick({ clientY: 10 }) // эмулируем клик в верхней части экрана
+  } else if (avgBeta < -30) {
+    // Наклон вниз
+    handleClick({ clientY: window.innerHeight - 10 }) // эмулируем клик в нижней части экрана
   }
-
-  // Дебаунс - предотвращаем частые срабатывания
-  if (currentTime - lastTime < debounceTimeout) return
-
-  // Определяем правильность ответа
-  const position =
-    smoothedBeta > 30 ? 'incorrect' : smoothedBeta < -30 ? 'correct' : null
-  if (!position) return
-
-  if (position === 'correct') {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964' // Зеленый
-  } else {
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55' // Красный
-  }
-
-  // Переход к следующему вопросу
-  setTimeout(() => {
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++
-      showNextQuestion()
-    } else {
-      currentQuestion.value = null // Конец викторины
-    }
-  }, 1000)
-
-  // Сохраняем последнее значение
-  lastBeta = smoothedBeta
-  lastTime = currentTime
 }
 </script>
 
