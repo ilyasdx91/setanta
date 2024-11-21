@@ -1,5 +1,8 @@
 <template>
   <category-header></category-header>
+
+  <Alert message="Hello!" />
+
   <div class="category">
     <img src="@/assets/img/image-category.png" alt="" />
     <div class="inner">
@@ -16,5 +19,6 @@
 </template>
 
 <script setup>
+import { Alert } from 'vue-tg'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 </script>
