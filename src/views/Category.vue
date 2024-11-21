@@ -7,10 +7,11 @@
     <img src="@/assets/img/image-category.png" alt="" />
     <div class="inner">
       <!-- <pre>{{ accelerometer }}</pre> -->
-      <pre>IsStarted: {{ accelerometer.isStarted }}</pre>
-      <pre>X: {{ accelerometer.x }}</pre>
-      <pre>Y: {{ accelerometer.y }}</pre>
-      <pre>Z: {{ accelerometer.z }}</pre>
+      <pre>IsStarted: {{ accelerometer.ac.isStarted }}</pre>
+      <pre>X: {{ accelerometer.ac.x }}</pre>
+      <pre>Y: {{ accelerometer.ac.y }}</pre>
+      <pre>Z: {{ accelerometer.ac.z }}</pre>
+      <pre>T: {{ accelerometer.t }}</pre>
       <h1>Sport trophies</h1>
       <p>
         Describe sport trophies. Just make sure your friends guess what trophy
@@ -24,10 +25,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 
 const tg = window.Telegram.WebApp
+let t = ref(0)
 
 // Accelerometer
 // const user = ref({ name: 'John', age: 30 }); // Создает реактивную ссылку на объект
@@ -40,14 +42,18 @@ const tg = window.Telegram.WebApp
 //const accelerometerZ = ref(tg.Accelerometer.z)
 
 const accelerometer = computed(() => {
-  return tg.Accelerometer
+  return { ac: tg.Accelerometer, t: t }
 })
 onMounted(() => {
   tg.requestFullscreen()
   tg.Accelerometer.start()
-  console.log(tg.Accelerometer.isStarted)
-  console.log(tg.Accelerometer.x)
-  console.log(tg.Accelerometer.y)
-  console.log(tg.Accelerometer.z)
+  //console.log(tg.Accelerometer.isStarted)
+  //console.log(tg.Accelerometer.x)
+  //console.log(tg.Accelerometer.y)
+  //console.log(tg.Accelerometer.z)
+  console.log(tg)
+  setInterval(() => {
+    t.value++
+  }, 100)
 })
 </script>
