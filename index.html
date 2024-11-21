@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+    <script>
+      let tg = window.Telegram.WebApp
+
+      tg.requestFullscreen()
+    </script>
     <title>Vite App</title>
   </head>
   <body>
