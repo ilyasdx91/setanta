@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 //==========================
@@ -186,8 +186,12 @@ const props = defineProps({
 const currentQuestion = ref(null)
 const currentAnswerColor = ref('#FFD106')
 const answerStatus = ref('') // 'correct' | 'incorrect' | ''
-
 const currentIndex = ref(0)
+
+const correctAnswers = ref(0)
+const totalQuestions = ref(props.questions.length) // Инициализируем здесь
+const isQuizActive = ref(false) // Флаг для активности викторины
+let lastOrientationTime = 0 // Время последнего наклона
 
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
@@ -230,51 +234,71 @@ const handleClick = event => {
     }
   }, 1000)
 }
+
 //=====================================================
 
-const isQuizActive = ref(false) // Флаг для контроля активности викторины
+const handleOrientation = position => {
+  const currentTime = Date.now()
+  if (currentTime - lastOrientationTime < 1500) return
+
+  if (position === 'correct') {
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964'
+    correctAnswers.value++
+  } else {
+    answerStatus.value = 'incorrect'
+    currentAnswerColor.value = '#FC5F55'
+  }
+
+  lastOrientationTime = currentTime // Обновляем lastOrientationTime после каждого ответа
+  setTimeout(showNextQuestion, 1000)
+}
+
+const betaHistory = ref([])
+
+const checkOrientation = event => {
+  if (!isQuizActive.value || !currentQuestion.value) return
+
+  betaHistory.push(event.beta)
+
+  if (betaHistory.length > 3) {
+    betaHistory.shift()
+  }
+
+  const avgBeta =
+    betaHistory.reduce((acc, val) => acc + val, 0) / betaHistory.length
+
+  if (avgBeta > 25) {
+    handleOrientation('incorrect')
+  } else if (avgBeta < -25) {
+    handleOrientation('correct')
+  }
+}
+
+const startQuiz = () => {
+  currentIndex.value = 0
+  correctAnswers.value = 0
+  showNextQuestion()
+  timeLeft.value = gameSettings.gameTime
+  startTimer()
+  isQuizActive.value = true
+}
+
+const finishGame = () => {
+  alert(
+    `Игра закончена! Правильных ответов: ${correctAnswers.value} из ${totalQuestions.value}`,
+  )
+}
 
 onMounted(() => {
-  startTimer()
-  showNextQuestion() // Показ первого вопроса
+  window.addEventListener('deviceorientation', checkOrientation)
   startQuiz()
-  window.addEventListener('deviceorientation', checkOrientation) // Слушаем изменения ориентации устройства
 })
 
 onBeforeUnmount(() => {
   clearInterval(timerInterval.value)
   window.removeEventListener('deviceorientation', checkOrientation)
 })
-
-const startQuiz = () => {
-  isQuizActive.value = true // Активируем викторину
-  betaHistory.length = 0 // Очистить историю углов
-}
-
-const betaHistory = ref([]) // для хранения истории значений beta
-
-const checkOrientation = event => {
-  if (!isQuizActive.value || !currentQuestion.value) return
-
-  betaHistory.push(event.beta) // Добавляем текущее значение beta в историю
-
-  // проверяем последние 5 значений
-  if (betaHistory.length > 5) {
-    betaHistory.shift() // удаляем первое значение если больше 5
-  }
-
-  // усредняем последние 5 значений для сглаживания
-  const avgBeta =
-    betaHistory.reduce((acc, val) => acc + val, 0) / betaHistory.length
-
-  if (avgBeta > 30) {
-    // Наклон вверх
-    handleClick({ clientY: 10 }) // эмулируем клик в верхней части экрана
-  } else if (avgBeta < -30) {
-    // Наклон вниз
-    handleClick({ clientY: window.innerHeight - 10 }) // эмулируем клик в нижней части экрана
-  }
-}
 </script>
 
 <style scoped lang="scss">
