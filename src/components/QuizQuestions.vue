@@ -292,6 +292,7 @@ const finishGame = () => {
 
 onMounted(() => {
   window.addEventListener('deviceorientation', checkOrientation)
+  isQuizActive.value = true // Установить isQuizActive в true здесь
   startQuiz()
 })
 
