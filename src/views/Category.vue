@@ -48,30 +48,46 @@ const toggleFullscreen = () => {
   }
 }
 
+// Переменная для хранения ID анимации
+let animationFrameId = null
+
+// Обновление данных акселерометра через requestAnimationFrame
+const updateOrientation = () => {
+  const accel = window.Telegram?.WebApp?.Accelerometer
+
+  if (accel) {
+    orientation.alpha = accel.alpha || 0
+    orientation.beta = accel.beta || 0
+    orientation.gamma = accel.gamma || 0
+
+    // Запускаем следующий кадр
+    animationFrameId = requestAnimationFrame(updateOrientation)
+  }
+}
+
 onMounted(() => {
   // Включаем полноэкранный режим при монтировании компонента
   toggleFullscreen()
 
   const accel = window.Telegram?.WebApp?.Accelerometer
-
   if (accel) {
     accel.start() // Запуск акселерометра
-
-    // Устанавливаем интервал обновления данных
-    setInterval(() => {
-      orientation.alpha = accel.alpha || 0 // Вращение по оси Z
-      orientation.beta = accel.beta || 0 // Наклон вперед/назад
-      orientation.gamma = accel.gamma || 0 // Наклон влево/вправо
-    }, 100) // Обновление каждые 100 мс
+    updateOrientation() // Начинаем обновление данных в реальном времени
   } else {
     console.error('Акселерометр недоступен.')
   }
 })
 
 onUnmounted(() => {
+  // Останавливаем обновления при размонтировании компонента
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+
+  // Останавливаем акселерометр при размонтировании компонента
   const accel = window.Telegram?.WebApp?.Accelerometer
   if (accel && accel.stop) {
-    accel.stop() // Остановка акселерометра при размонтировании компонента
+    accel.stop()
   }
 })
 </script>
