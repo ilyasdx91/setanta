@@ -25,10 +25,41 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, reactive, onMounted, watchEffect, computed } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 
-const accelerometer = reactive(window.Telegram.WebApp)
+const accelerometer = reactive({
+  isStarted: false,
+  x: 0,
+  y: 0,
+  z: 0,
+})
+
+onMounted(() => {
+  const accel = window.Telegram?.WebApp?.Accelerometer
+
+  if (accel) {
+    try {
+      window.Telegram.WebApp.requestFullscreen() // Переход в полноэкранный режим
+      accel.start() // Запуск акселерометра
+
+      watchEffect(() => {
+        accelerometer.isStarted = accel.isStarted
+        accelerometer.x = accel.x
+        accelerometer.y = accel.y
+        accelerometer.z = accel.z
+      })
+    } catch (error) {
+      console.error(
+        'Ошибка при запуске акселерометра или переходе в полноэкранный режим:',
+        error,
+      )
+    }
+  } else {
+    console.error('Акселерометр не поддерживается.')
+  }
+})
+
 //let t = ref(0)
 
 // Accelerometer
@@ -47,16 +78,4 @@ const accelerometer = reactive(window.Telegram.WebApp)
 //     //t: t
 //   }
 // })
-onMounted(() => {
-  accelerometer.requestFullscreen()
-  accelerometer.Accelerometer.start()
-  //console.log(tg.Accelerometer.isStarted)
-  //console.log(tg.Accelerometer.x)
-  //console.log(tg.Accelerometer.y)
-  //console.log(tg.Accelerometer.z)
-  console.log(tg)
-  // setInterval(() => {
-  //   t.value++
-  // }, 100)
-})
 </script>
