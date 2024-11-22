@@ -11,7 +11,7 @@
       <pre>X: {{ accelerometer.ac.x }}</pre>
       <pre>Y: {{ accelerometer.ac.y }}</pre>
       <pre>Z: {{ accelerometer.ac.z }}</pre>
-      <pre>T: {{ accelerometer.t }}</pre>
+      <pre>T: {{ accelerometer.ac.z }}</pre>
       <h1>Sport trophies</h1>
       <p>
         Describe sport trophies. Just make sure your friends guess what trophy
@@ -28,8 +28,8 @@
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 
-const tg = window.Telegram.WebApp
-let t = ref(0)
+const tg = reactive(window.Telegram.WebApp)
+//let t = ref(0)
 
 // Accelerometer
 // const user = ref({ name: 'John', age: 30 }); // Создает реактивную ссылку на объект
@@ -42,7 +42,10 @@ let t = ref(0)
 //const accelerometerZ = ref(tg.Accelerometer.z)
 
 const accelerometer = computed(() => {
-  return { ac: tg.Accelerometer, t: t }
+  return {
+    ac: tg.Accelerometer,
+    //t: t
+  }
 })
 onMounted(() => {
   tg.requestFullscreen()
@@ -52,8 +55,8 @@ onMounted(() => {
   //console.log(tg.Accelerometer.y)
   //console.log(tg.Accelerometer.z)
   console.log(tg)
-  setInterval(() => {
-    t.value++
-  }, 100)
+  // setInterval(() => {
+  //   t.value++
+  // }, 100)
 })
 </script>
