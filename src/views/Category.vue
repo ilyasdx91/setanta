@@ -7,11 +7,11 @@
     <img src="@/assets/img/image-category.png" alt="" />
     <div class="inner">
       <!-- <pre>{{ accelerometer }}</pre> -->
-      <pre>IsStarted: {{ accelerometer.ac.isStarted }}</pre>
-      <pre>X: {{ accelerometer.ac.x }}</pre>
-      <pre>Y: {{ accelerometer.ac.y }}</pre>
-      <pre>Z: {{ accelerometer.ac.z }}</pre>
-      <pre>T: {{ accelerometer.ac.z }}</pre>
+      <pre>IsStarted: {{ accelerometer.isStarted }}</pre>
+      <pre>X: {{ accelerometer.x }}</pre>
+      <pre>Y: {{ accelerometer.y }}</pre>
+      <pre>Z: {{ accelerometer.z }}</pre>
+
       <h1>Sport trophies</h1>
       <p>
         Describe sport trophies. Just make sure your friends guess what trophy
@@ -28,7 +28,7 @@
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 
-const tg = reactive(window.Telegram.WebApp)
+const accelerometer = reactive(window.Telegram.WebApp)
 //let t = ref(0)
 
 // Accelerometer
@@ -41,15 +41,15 @@ const tg = reactive(window.Telegram.WebApp)
 //const accelerometerY = ref(tg.Accelerometer.y)
 //const accelerometerZ = ref(tg.Accelerometer.z)
 
-const accelerometer = computed(() => {
-  return {
-    ac: tg.Accelerometer,
-    //t: t
-  }
-})
+// const accelerometer = computed(() => {
+//   return {
+//     ac: tg.Accelerometer,
+//     //t: t
+//   }
+// })
 onMounted(() => {
-  tg.requestFullscreen()
-  tg.Accelerometer.start()
+  accelerometer.requestFullscreen()
+  accelerometer.Accelerometer.start()
   //console.log(tg.Accelerometer.isStarted)
   //console.log(tg.Accelerometer.x)
   //console.log(tg.Accelerometer.y)
