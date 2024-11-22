@@ -7,10 +7,10 @@
     <img src="@/assets/img/image-category.png" alt="" />
     <div class="inner">
       <!-- <pre>{{ accelerometer }}</pre> -->
-      <pre>IsStarted: {{ accelerometer.isStarted }}</pre>
-      <pre>X: {{ accelerometer.x }}</pre>
-      <pre>Y: {{ accelerometer.y }}</pre>
-      <pre>Z: {{ accelerometer.z }}</pre>
+      <!-- <pre>IsStarted: {{ accelerometer.isStarted }}</pre> -->
+      <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
+      <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
+      <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre>
 
       <h1>Sport trophies</h1>
       <p>
@@ -35,16 +35,16 @@ import {
 } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 
-const accelerometer = reactive({
-  isStarted: false,
-  x: 0,
-  y: 0,
-  z: 0,
+// Реактивные данные для ориентации устройства
+const orientation = reactive({
+  alpha: 0, // Вращение вокруг оси Z
+  beta: 0, // Наклон вперед/назад (ось X)
+  gamma: 0, // Наклон влево/вправо (ось Y)
 })
 
 const isFullscreen = ref(false)
-let animationFrameId = null
 
+// Переключение полноэкранного режима
 const toggleFullscreen = () => {
   if (!isFullscreen.value) {
     window.Telegram.WebApp.requestFullscreen()
@@ -55,34 +55,28 @@ const toggleFullscreen = () => {
   }
 }
 
-const updateAccelerometer = () => {
-  const accel = window.Telegram?.WebApp?.Accelerometer
-
-  if (accel) {
-    accelerometer.isStarted = accel.isStarted
-    accelerometer.x = accel.x
-    accelerometer.y = accel.y
-    accelerometer.z = accel.z
-
-    // Запускаем следующий кадр обновления
-    animationFrameId = requestAnimationFrame(updateAccelerometer)
-  } else {
-    console.error('Акселерометр недоступен.')
-  }
-}
+let handleOrientationChange = null
 
 onMounted(() => {
-  const accel = window.Telegram?.WebApp?.Accelerometer
+  if ('DeviceOrientationEvent' in window) {
+    // Обработчик события изменения ориентации устройства
+    handleOrientationChange = event => {
+      orientation.alpha = event.alpha || 0 // Вращение по оси Z
+      orientation.beta = event.beta || 0 // Наклон вперед/назад
+      orientation.gamma = event.gamma || 0 // Наклон влево/вправо
+    }
 
-  if (accel) {
-    accel.start()
-    updateAccelerometer() // Начинаем обновление данных в реальном времени
+    // Подписка на событие изменения ориентации
+    window.addEventListener('deviceorientation', handleOrientationChange)
+  } else {
+    console.error('DeviceOrientation API не поддерживается на этом устройстве.')
   }
 })
 
 onUnmounted(() => {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId) // Останавливаем обновления при размонтировании
+  // Убираем подписку на событие при размонтировании
+  if (handleOrientationChange) {
+    window.removeEventListener('deviceorientation', handleOrientationChange)
   }
 })
 </script>
