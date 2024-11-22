@@ -1,8 +1,6 @@
 <template>
   <category-header></category-header>
 
-  <Alert message="Hello!" />
-
   <div class="category">
     <img src="@/assets/img/image-category.png" alt="" />
     <div class="inner">
@@ -55,7 +53,7 @@ let animationFrameId = null
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
-  if (deviceOrientation && deviceOrientation.isStarted) {
+  if (deviceOrientation && deviceOrientation.alpha !== null) {
     orientation.alpha = deviceOrientation.alpha || 0
     orientation.beta = deviceOrientation.beta || 0
     orientation.gamma = deviceOrientation.gamma || 0
@@ -71,7 +69,8 @@ onMounted(() => {
 
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
-    deviceOrientation.isStarted = true // Запуск отслеживания ориентации
+    // Запуск отслеживания ориентации через API Telegram WebApp
+    deviceOrientation.start() // Правильный способ запустить отслеживание
     updateOrientation() // Начинаем обновление данных в реальном времени
   } else {
     console.error('DeviceOrientation не доступен.')
@@ -85,8 +84,9 @@ onUnmounted(() => {
   }
 
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
-  if (deviceOrientation && deviceOrientation.isStarted) {
-    deviceOrientation.isStarted = false // Останавливаем отслеживание ориентации
+  if (deviceOrientation) {
+    // Останавливаем отслеживание ориентации
+    deviceOrientation.stop() // Правильный способ остановить отслеживание
   }
 })
 </script>
