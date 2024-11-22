@@ -40,9 +40,13 @@ onMounted(() => {
 
   if (accel) {
     try {
-      window.Telegram.WebApp.requestFullscreen() // Переход в полноэкранный режим
-      accel.start() // Запуск акселерометра
+      // Переход в полноэкранный режим
+      window.Telegram.WebApp.requestFullscreen()
 
+      // Запуск акселерометра
+      accel.start()
+
+      // Следим за изменением данных
       watchEffect(() => {
         accelerometer.isStarted = accel.isStarted
         accelerometer.x = accel.x
@@ -51,12 +55,12 @@ onMounted(() => {
       })
     } catch (error) {
       console.error(
-        'Ошибка при запуске акселерометра или переходе в полноэкранный режим:',
+        'Ошибка при запуске акселерометра или полноэкранного режима:',
         error,
       )
     }
   } else {
-    console.error('Акселерометр не поддерживается.')
+    console.error('Акселерометр недоступен.')
   }
 })
 
