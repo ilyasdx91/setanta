@@ -68,7 +68,7 @@ onMounted(() => {
   //toggleFullscreen()
   if (window.Telegram?.WebApp?.lockOrientation) {
     window.Telegram.WebApp.requestFullscreen()
-    window.Telegram.WebApp.lockOrientation('landscape-primary')
+    window.Telegram.WebApp.lockOrientation('landscape-secondary')
   }
   console.log(window.Telegram?.WebApp)
 
