@@ -51,16 +51,16 @@ const toggleFullscreen = () => {
 // Переменная для хранения ID анимации
 let animationFrameId = null
 
-// Обновление данных акселерометра через requestAnimationFrame
+// Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
-  const accel = window.Telegram?.WebApp?.Accelerometer
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
-  if (accel) {
-    orientation.alpha = accel.alpha || 0
-    orientation.beta = accel.beta || 0
-    orientation.gamma = accel.gamma || 0
+  if (deviceOrientation && deviceOrientation.isStarted) {
+    orientation.alpha = deviceOrientation.alpha || 0
+    orientation.beta = deviceOrientation.beta || 0
+    orientation.gamma = deviceOrientation.gamma || 0
 
-    // Запускаем следующий кадр
+    // Запускаем следующий кадр обновления
     animationFrameId = requestAnimationFrame(updateOrientation)
   }
 }
@@ -69,12 +69,12 @@ onMounted(() => {
   // Включаем полноэкранный режим при монтировании компонента
   toggleFullscreen()
 
-  const accel = window.Telegram?.WebApp?.Accelerometer
-  if (accel) {
-    accel.start() // Запуск акселерометра
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation) {
+    deviceOrientation.isStarted = true // Запуск отслеживания ориентации
     updateOrientation() // Начинаем обновление данных в реальном времени
   } else {
-    console.error('Акселерометр недоступен.')
+    console.error('DeviceOrientation не доступен.')
   }
 })
 
@@ -84,10 +84,9 @@ onUnmounted(() => {
     cancelAnimationFrame(animationFrameId)
   }
 
-  // Останавливаем акселерометр при размонтировании компонента
-  const accel = window.Telegram?.WebApp?.Accelerometer
-  if (accel && accel.stop) {
-    accel.stop()
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation && deviceOrientation.isStarted) {
+    deviceOrientation.isStarted = false // Останавливаем отслеживание ориентации
   }
 })
 </script>
