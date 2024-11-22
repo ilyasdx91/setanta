@@ -25,58 +25,53 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, onUnmounted, ref } from 'vue';
-import CategoryHeader from '@/components/CategoryHeader.vue';
+import { reactive, onMounted, onUnmounted, ref } from 'vue'
+import CategoryHeader from '@/components/CategoryHeader.vue'
 
 // Реактивные данные для ориентации устройства
 const orientation = reactive({
   alpha: 0, // Вращение вокруг оси Z
-  beta: 0,  // Наклон вперед/назад (ось X)
+  beta: 0, // Наклон вперед/назад (ось X)
   gamma: 0, // Наклон влево/вправо (ось Y)
-});
+})
 
-const isFullscreen = ref(false);
+const isFullscreen = ref(false)
 
 // Переключение полноэкранного режима
 const toggleFullscreen = () => {
   if (!isFullscreen.value) {
-    window.Telegram.WebApp.requestFullscreen();
-    isFullscreen.value = true;
+    window.Telegram.WebApp.requestFullscreen()
+    isFullscreen.value = true
   } else {
-    document.exitFullscreen();
-    isFullscreen.value = false;
+    document.exitFullscreen()
+    isFullscreen.value = false
   }
-};
+}
 
 onMounted(() => {
   // Включаем полноэкранный режим при монтировании компонента
-  toggleFullscreen();
+  toggleFullscreen()
 
-  const accel = window.Telegram?.WebApp?.Accelerometer;
+  const accel = window.Telegram?.WebApp?.Accelerometer
 
   if (accel) {
-    accel.start(); // Запуск акселерометра
+    accel.start() // Запуск акселерометра
 
     // Устанавливаем интервал обновления данных
     setInterval(() => {
-      orientation.alpha = accel.alpha || 0;  // Вращение по оси Z
-      orientation.beta = accel.beta || 0;    // Наклон вперед/назад
-      orientation.gamma = accel.gamma || 0;  // Наклон влево/вправо
-    }, 100); // Обновление каждые 100 мс
+      orientation.alpha = accel.alpha || 0 // Вращение по оси Z
+      orientation.beta = accel.beta || 0 // Наклон вперед/назад
+      orientation.gamma = accel.gamma || 0 // Наклон влево/вправо
+    }, 100) // Обновление каждые 100 мс
   } else {
-    console.error('Акселерометр недоступен.');
+    console.error('Акселерометр недоступен.')
   }
-});
+})
 
 onUnmounted(() => {
-  const accel = window.Telegram?.WebApp?.Accelerometer;
+  const accel = window.Telegram?.WebApp?.Accelerometer
   if (accel && accel.stop) {
-    accel.stop(); // Остановка акселерометра при размонтировании компонента
-  }
-});
-  // Убираем подписку на событие при размонтировании
-  if (handleOrientationChange) {
-    window.removeEventListener('deviceorientation', handleOrientationChange)
+    accel.stop() // Остановка акселерометра при размонтировании компонента
   }
 })
 </script>
