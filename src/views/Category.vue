@@ -25,7 +25,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watchEffect, computed } from 'vue'
+import {
+  ref,
+  reactive,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  computed,
+} from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 
 const accelerometer = reactive({
@@ -35,51 +42,47 @@ const accelerometer = reactive({
   z: 0,
 })
 
+const isFullscreen = ref(false)
+let animationFrameId = null
+
+const toggleFullscreen = () => {
+  if (!isFullscreen.value) {
+    window.Telegram.WebApp.requestFullscreen()
+    isFullscreen.value = true
+  } else {
+    document.exitFullscreen()
+    isFullscreen.value = false
+  }
+}
+
+const updateAccelerometer = () => {
+  const accel = window.Telegram?.WebApp?.Accelerometer
+
+  if (accel) {
+    accelerometer.isStarted = accel.isStarted
+    accelerometer.x = accel.x
+    accelerometer.y = accel.y
+    accelerometer.z = accel.z
+
+    // Запускаем следующий кадр обновления
+    animationFrameId = requestAnimationFrame(updateAccelerometer)
+  } else {
+    console.error('Акселерометр недоступен.')
+  }
+}
+
 onMounted(() => {
   const accel = window.Telegram?.WebApp?.Accelerometer
 
   if (accel) {
-    try {
-      // Переход в полноэкранный режим
-      window.Telegram.WebApp.requestFullscreen()
-
-      // Запуск акселерометра
-      accel.start()
-
-      // Следим за изменением данных
-      watchEffect(() => {
-        accelerometer.isStarted = accel.isStarted
-        accelerometer.x = accel.x
-        accelerometer.y = accel.y
-        accelerometer.z = accel.z
-      })
-    } catch (error) {
-      console.error(
-        'Ошибка при запуске акселерометра или полноэкранного режима:',
-        error,
-      )
-    }
-  } else {
-    console.error('Акселерометр недоступен.')
+    accel.start()
+    updateAccelerometer() // Начинаем обновление данных в реальном времени
   }
 })
 
-//let t = ref(0)
-
-// Accelerometer
-// const user = ref({ name: 'John', age: 30 }); // Создает реактивную ссылку на объект
-// console.log(user.value.name); // Выведет 'John'
-
-//const accelerometer = ref({ X: tg.Accelerometer }) // Создает реактивную ссылку на объект
-//const accelerometerIsStarted = ref(tg.Accelerometer.isStarted)
-//const accelerometerX = ref(tg.Accelerometer.x)
-//const accelerometerY = ref(tg.Accelerometer.y)
-//const accelerometerZ = ref(tg.Accelerometer.z)
-
-// const accelerometer = computed(() => {
-//   return {
-//     ac: tg.Accelerometer,
-//     //t: t
-//   }
-// })
+onUnmounted(() => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId) // Останавливаем обновления при размонтировании
+  }
+})
 </script>
