@@ -78,17 +78,22 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.game-container {
+  min-height: calc(100vh - 70px);
+}
+
 .orientation-warning {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: calc(100vh - 70px);
   text-align: center;
-  background-color: #f0f0f0;
+  background-color: #000;
 }
 
 .orientation-warning p {
   font-size: 1.5rem;
-  color: #333;
+  font-weight: 700;
+  color: #fdd106;
 }
 </style>

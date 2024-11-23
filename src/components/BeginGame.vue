@@ -27,12 +27,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
 .countdown {
   position: absolute;
   left: 50%;
