@@ -21,27 +21,33 @@ import BeginGame from '@/components/BeginGame.vue'
 import QuizQuestions from '@/components/QuizQuestions.vue'
 
 const showQuiz = ref(false)
-
 const questions = ref([
   { id: 1, question: 'Что это?' },
   { id: 2, question: 'Где это?' },
   { id: 3, question: 'Как это?' },
 ])
 
-const isPortrait = ref(true) // Флаг для проверки портретной ориентации
+const isPortrait = ref(true) // Флаг для текущей ориентации
 
 // Показываем вопросы после завершения отсчета
 const showQuestions = () => {
   showQuiz.value = true
 }
 
-// Проверка ориентации через Telegram.WebApp
+// Проверка текущей ориентации
 const checkOrientation = () => {
-  const isPortraitNow = window.Telegram.WebApp.isOrientationLocked === false
-  isPortrait.value = isPortraitNow
+  try {
+    const orientation = window.Telegram?.WebApp?.isOrientationLocked
+    isPortrait.value = !orientation // Если не заблокировано, это портретный режим
+    console.log(
+      `Текущая ориентация: ${isPortrait.value ? 'портретная' : 'альбомная'}`,
+    )
+  } catch (err) {
+    console.error('Ошибка проверки ориентации:', err)
+  }
 }
 
-// Блокировка альбомной ориентации через Telegram.WebApp
+// Блокировка альбомной ориентации
 const lockOrientationLandscape = () => {
   try {
     window.Telegram.WebApp.lockOrientation('landscape')
@@ -53,25 +59,28 @@ const lockOrientationLandscape = () => {
   }
 }
 
-// Слушатель для изменения ориентации
+// Слушатель изменения ориентации
 const onOrientationChange = () => {
   checkOrientation()
+  if (!isPortrait.value) {
+    lockOrientationLandscape() // Блокируем альбомный режим
+  }
 }
 
 onMounted(() => {
   checkOrientation()
 
-  // Блокируем альбомную ориентацию, если устройство не в портретной ориентации
+  // Устанавливаем слушатель изменения ориентации
+  window.Telegram.WebApp.onEvent('orientationChanged', onOrientationChange)
+
+  // Автоматическая блокировка альбомной ориентации, если уже возможно
   if (!isPortrait.value) {
     lockOrientationLandscape()
   }
-
-  // Слушатель события изменения ориентации
-  window.Telegram.WebApp.onEvent('orientationChanged', onOrientationChange)
 })
 
 onBeforeUnmount(() => {
-  // Убираем слушатель события
+  // Удаляем слушатель при размонтировании компонента
   window.Telegram.WebApp.offEvent('orientationChanged', onOrientationChange)
 })
 </script>
