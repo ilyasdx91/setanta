@@ -7,7 +7,7 @@
       </p>
     </div>
 
-    <!-- Игра -->
+    <!-- Игровой интерфейс -->
     <div v-else>
       <begin-game @countdownFinished="showQuestions" v-if="!showQuiz" />
       <quiz-questions v-else :questions="questions" />
@@ -34,63 +34,46 @@ const showQuestions = () => {
   showQuiz.value = true
 }
 
-// Проверка текущей ориентации
+// Проверяем ориентацию
 const checkOrientation = () => {
-  const orientationLocked =
-    window.Telegram?.WebApp?.isOrientationLocked || false
-  console.log(`Ориентация заблокирована: ${orientationLocked}`)
-
-  // Проверяем текущую ориентацию (портретная или альбомная)
   isPortrait.value = window.innerWidth < window.innerHeight
   console.log(`Ориентация: ${isPortrait.value ? 'портретная' : 'альбомная'}`)
 }
 
-// Блокировка альбомной ориентации
-const lockOrientationLandscape = () => {
+// Устанавливаем альбомную ориентацию через Telegram API
+const lockLandscape = () => {
   try {
-    window.Telegram.WebApp.lockOrientation('landscape')
-    console.log(
-      'Ориентация заблокирована на альбомный режим через Telegram.WebApp',
-    )
-  } catch (err) {
-    console.error('Ошибка блокировки ориентации через Telegram.WebApp:', err)
+    window.Telegram?.WebApp?.lockOrientation('landscape')
+    console.log('Ориентация заблокирована на альбомный режим.')
+  } catch (error) {
+    console.error('Не удалось заблокировать альбомный режим:', error)
   }
 }
 
-// Слушатель изменения ориентации
-const onOrientationChange = () => {
+// Слушатель изменений размера окна (как резервный вариант)
+const handleResize = () => {
   checkOrientation()
   if (!isPortrait.value) {
-    lockOrientationLandscape() // Блокируем альбомный режим
+    lockLandscape()
   }
 }
 
 onMounted(() => {
-  // Проверяем начальное состояние ориентации
+  // Проверяем начальное состояние
   checkOrientation()
 
-  // Регистрируем событие orientationChanged
-  try {
-    window.Telegram.WebApp.onEvent('orientationChanged', onOrientationChange)
-    console.log('Слушатель orientationChanged успешно установлен.')
-  } catch (err) {
-    console.error('Ошибка при добавлении слушателя orientationChanged:', err)
-  }
+  // Подписываемся на изменения размера окна
+  window.addEventListener('resize', handleResize)
 
-  // Автоматическая блокировка альбомной ориентации, если уже возможно
+  // Также пробуем сразу заблокировать ориентацию
   if (!isPortrait.value) {
-    lockOrientationLandscape()
+    lockLandscape()
   }
 })
 
 onBeforeUnmount(() => {
-  // Удаляем слушатель при размонтировании компонента
-  try {
-    window.Telegram.WebApp.offEvent('orientationChanged', onOrientationChange)
-    console.log('Слушатель orientationChanged успешно удалён.')
-  } catch (err) {
-    console.error('Ошибка при удалении слушателя orientationChanged:', err)
-  }
+  // Отписываемся от события изменения размера окна
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -101,11 +84,11 @@ onBeforeUnmount(() => {
   align-items: center;
   height: 100vh;
   text-align: center;
-  background-color: #000;
+  background-color: #f0f0f0;
 }
 
 .orientation-warning p {
   font-size: 1.5rem;
-  color: #fff;
+  color: #333;
 }
 </style>
