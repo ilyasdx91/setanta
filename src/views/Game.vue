@@ -1,12 +1,22 @@
 <template>
   <div class="game-container">
-    <begin-game @countdownFinished="showQuestions" v-if="!showQuiz" />
-    <quiz-questions v-else :questions="questions" />
+    <!-- Сообщение для портретной ориентации -->
+    <div v-if="isPortrait" class="orientation-warning">
+      <p>
+        Пожалуйста, переверните устройство в альбомный режим, чтобы начать игру.
+      </p>
+    </div>
+
+    <!-- Игра -->
+    <div v-else>
+      <begin-game @countdownFinished="showQuestions" v-if="!showQuiz" />
+      <quiz-questions v-else :questions="questions" />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import BeginGame from '@/components/BeginGame.vue'
 import QuizQuestions from '@/components/QuizQuestions.vue'
 
@@ -18,40 +28,64 @@ const questions = ref([
   { id: 3, question: 'Как это?' },
 ])
 
+const isPortrait = ref(true) // Флаг для проверки портретной ориентации
+
+// Показываем вопросы после завершения отсчета
 const showQuestions = () => {
-  showQuiz.value = true // Показать викторину после завершения отсчета
+  showQuiz.value = true
 }
 
-//====================================
+// Проверка ориентации устройства
+const checkOrientation = () => {
+  isPortrait.value = window.matchMedia('(orientation: portrait)').matches
+}
+
+// Блокировка ориентации в альбомном режиме
+const lockOrientation = async () => {
+  try {
+    await screen.orientation.lock('landscape')
+    console.log('Ориентация заблокирована на альбомный режим')
+  } catch (err) {
+    console.error('Не удалось заблокировать ориентацию:', err)
+  }
+}
 
 onMounted(() => {
-  // Принудительно переворачиваем страницу в горизонтальную ориентацию
-  document.body.classList.add('game-landscape')
+  // Проверяем ориентацию устройства при монтировании
+  checkOrientation()
+
+  // Добавляем слушатель изменений ориентации
+  window.addEventListener('orientationchange', checkOrientation)
+
+  // Если устройство в альбомной ориентации, блокируем её
+  if (!isPortrait.value) {
+    lockOrientation()
+  }
 })
 
 onBeforeUnmount(() => {
-  // Убираем стиль при выходе с игры
-  document.body.classList.remove('game-landscape')
+  // Удаляем слушатель изменений ориентации
+  window.removeEventListener('orientationchange', checkOrientation)
+
+  // Снимаем блокировку ориентации, если она была установлена
+  if (screen.orientation.unlock) {
+    screen.orientation.unlock()
+  }
 })
 </script>
 
 <style scoped>
-.game-container {
-  width: 100%;
-  height: 100%;
-}
-
-/* Стиль для страницы Game в горизонтальном виде */
-.game-landscape .game-container {
-  /* transform: rotate(90deg);
-  transform-origin: top left;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
+.orientation-warning {
   display: flex;
   justify-content: center;
-  align-items: center;  */
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  background-color: #f0f0f0;
 }
 
-/* Можно добавить другие стили, чтобы элементы на странице выглядели корректно */
+.orientation-warning p {
+  font-size: 1.5rem;
+  color: #333;
+}
 </style>

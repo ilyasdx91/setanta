@@ -36,15 +36,15 @@ const orientation = reactive({
 const isFullscreen = ref(false)
 
 // Переключение полноэкранного режима
-const toggleFullscreen = () => {
-  if (!isFullscreen.value) {
-    window.Telegram.WebApp.requestFullscreen()
-    isFullscreen.value = true
-  } else {
-    document.exitFullscreen()
-    isFullscreen.value = false
-  }
-}
+// const toggleFullscreen = () => {
+//   if (!isFullscreen.value) {
+//     window.Telegram.WebApp.requestFullscreen()
+//     isFullscreen.value = true
+//   } else {
+//     document.exitFullscreen()
+//     isFullscreen.value = false
+//   }
+// }
 
 // Переменная для хранения ID анимации
 let animationFrameId = null
@@ -67,7 +67,6 @@ onMounted(() => {
   // Включаем полноэкранный режим при монтировании компонента
   //toggleFullscreen()
   if (window.Telegram?.WebApp?.lockOrientation) {
-    window.Telegram.WebApp.requestFullscreen()
     window.Telegram.WebApp.lockOrientation('landscape-secondary')
   }
   console.log(window.Telegram?.WebApp)

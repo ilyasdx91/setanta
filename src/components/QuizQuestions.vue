@@ -191,7 +191,6 @@ const currentIndex = ref(0)
 const correctAnswers = ref(0)
 const totalQuestions = ref(props.questions.length) // Инициализируем здесь
 const isQuizActive = ref(false) // Флаг для активности викторины
-let lastOrientationTime = 0 // Время последнего наклона
 
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
@@ -237,25 +236,6 @@ const handleClick = event => {
 
 //=====================================================
 
-const checkOrientation = event => {
-  if (!isQuizActive.value || !currentQuestion.value) return
-
-  betaHistory.push(event.beta)
-
-  if (betaHistory.length > 3) {
-    betaHistory.shift()
-  }
-
-  const avgBeta =
-    betaHistory.reduce((acc, val) => acc + val, 0) / betaHistory.length
-
-  if (avgBeta > 25) {
-    handleOrientation('incorrect')
-  } else if (avgBeta < -25) {
-    handleOrientation('correct')
-  }
-}
-
 const startQuiz = () => {
   currentIndex.value = 0
   correctAnswers.value = 0
@@ -266,15 +246,15 @@ const startQuiz = () => {
 }
 
 onMounted(() => {
-  window.addEventListener('deviceorientation', checkOrientation)
   isQuizActive.value = true // Установить isQuizActive в true здесь
   startQuiz()
 })
 
 onBeforeUnmount(() => {
   clearInterval(timerInterval.value)
-  window.removeEventListener('deviceorientation', checkOrientation)
 })
+
+//=====================================================
 </script>
 
 <style scoped lang="scss">
