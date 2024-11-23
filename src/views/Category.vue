@@ -67,7 +67,7 @@ onMounted(() => {
   // Включаем полноэкранный режим при монтировании компонента
   //toggleFullscreen()
   if (window.Telegram?.WebApp?.lockOrientation) {
-    window.Telegram.WebApp.lockOrientation('landscape-secondary')
+    // window.Telegram.WebApp.lockOrientation('landscape-secondary')
   }
   console.log(window.Telegram?.WebApp)
 
