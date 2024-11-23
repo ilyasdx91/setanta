@@ -36,15 +36,13 @@ const showQuestions = () => {
 
 // Проверка текущей ориентации
 const checkOrientation = () => {
-  try {
-    const orientation = window.Telegram?.WebApp?.isOrientationLocked
-    isPortrait.value = !orientation // Если не заблокировано, это портретный режим
-    console.log(
-      `Текущая ориентация: ${isPortrait.value ? 'портретная' : 'альбомная'}`,
-    )
-  } catch (err) {
-    console.error('Ошибка проверки ориентации:', err)
-  }
+  const orientationLocked =
+    window.Telegram?.WebApp?.isOrientationLocked || false
+  console.log(`Ориентация заблокирована: ${orientationLocked}`)
+
+  // Проверяем текущую ориентацию (портретная или альбомная)
+  isPortrait.value = window.innerWidth < window.innerHeight
+  console.log(`Ориентация: ${isPortrait.value ? 'портретная' : 'альбомная'}`)
 }
 
 // Блокировка альбомной ориентации
@@ -68,10 +66,16 @@ const onOrientationChange = () => {
 }
 
 onMounted(() => {
+  // Проверяем начальное состояние ориентации
   checkOrientation()
 
-  // Устанавливаем слушатель изменения ориентации
-  window.Telegram.WebApp.onEvent('orientationChanged', onOrientationChange)
+  // Регистрируем событие orientationChanged
+  try {
+    window.Telegram.WebApp.onEvent('orientationChanged', onOrientationChange)
+    console.log('Слушатель orientationChanged успешно установлен.')
+  } catch (err) {
+    console.error('Ошибка при добавлении слушателя orientationChanged:', err)
+  }
 
   // Автоматическая блокировка альбомной ориентации, если уже возможно
   if (!isPortrait.value) {
@@ -81,7 +85,12 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   // Удаляем слушатель при размонтировании компонента
-  window.Telegram.WebApp.offEvent('orientationChanged', onOrientationChange)
+  try {
+    window.Telegram.WebApp.offEvent('orientationChanged', onOrientationChange)
+    console.log('Слушатель orientationChanged успешно удалён.')
+  } catch (err) {
+    console.error('Ошибка при удалении слушателя orientationChanged:', err)
+  }
 })
 </script>
 
@@ -92,11 +101,11 @@ onBeforeUnmount(() => {
   align-items: center;
   height: 100vh;
   text-align: center;
-  background-color: #f0f0f0;
+  background-color: #000;
 }
 
 .orientation-warning p {
   font-size: 1.5rem;
-  color: #333;
+  color: #fff;
 }
 </style>
