@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import BeginGame from '@/components/BeginGame.vue'
 import QuizQuestions from '@/components/QuizQuestions.vue'
 
@@ -35,42 +35,44 @@ const showQuestions = () => {
   showQuiz.value = true
 }
 
-// Проверка ориентации устройства
+// Проверка ориентации через Telegram.WebApp
 const checkOrientation = () => {
-  isPortrait.value = window.matchMedia('(orientation: portrait)').matches
+  const isPortraitNow = window.Telegram.WebApp.isOrientationLocked === false
+  isPortrait.value = isPortraitNow
 }
 
-// Блокировка ориентации в альбомном режиме
-const lockOrientation = async () => {
+// Блокировка альбомной ориентации через Telegram.WebApp
+const lockOrientationLandscape = () => {
   try {
-    await screen.orientation.lock('landscape')
-    console.log('Ориентация заблокирована на альбомный режим')
+    window.Telegram.WebApp.lockOrientation('landscape')
+    console.log(
+      'Ориентация заблокирована на альбомный режим через Telegram.WebApp',
+    )
   } catch (err) {
-    console.error('Не удалось заблокировать ориентацию:', err)
+    console.error('Ошибка блокировки ориентации через Telegram.WebApp:', err)
   }
+}
+
+// Слушатель для изменения ориентации
+const onOrientationChange = () => {
+  checkOrientation()
 }
 
 onMounted(() => {
-  // Проверяем ориентацию устройства при монтировании
   checkOrientation()
 
-  // Добавляем слушатель изменений ориентации
-  window.addEventListener('orientationchange', checkOrientation)
-
-  // Если устройство в альбомной ориентации, блокируем её
+  // Блокируем альбомную ориентацию, если устройство не в портретной ориентации
   if (!isPortrait.value) {
-    lockOrientation()
+    lockOrientationLandscape()
   }
+
+  // Слушатель события изменения ориентации
+  window.Telegram.WebApp.onEvent('orientationChanged', onOrientationChange)
 })
 
 onBeforeUnmount(() => {
-  // Удаляем слушатель изменений ориентации
-  window.removeEventListener('orientationchange', checkOrientation)
-
-  // Снимаем блокировку ориентации, если она была установлена
-  if (screen.orientation.unlock) {
-    screen.orientation.unlock()
-  }
+  // Убираем слушатель события
+  window.Telegram.WebApp.offEvent('orientationChanged', onOrientationChange)
 })
 </script>
 
