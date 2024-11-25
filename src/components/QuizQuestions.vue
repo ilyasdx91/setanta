@@ -171,6 +171,7 @@ const startTimer = () => {
       clearInterval(timerInterval.value)
       // Завершаем игру, когда время истекло
       currentQuestion.value = null // Можно здесь реализовать завершение игры
+      emit('gameEnded') // Сообщаем об окончании игры
     }
   }, 1000)
 }
@@ -230,6 +231,39 @@ const handleClick = event => {
       showNextQuestion() // Показать следующий вопрос
     } else {
       currentQuestion.value = null // Завершаем викторину
+      emit('gameEnded') // Сообщаем родителю, что игра закончена
+    }
+  }, 1000)
+}
+
+// ==========================
+// Логика обработки наклона устройства
+
+const handleDeviceTilt = event => {
+  const tiltBeta = event.beta // Наклон вперед-назад (диапазон от -90 до 90)
+
+  if (!currentQuestion.value) return
+
+  if (tiltBeta < -10) {
+    // Наклон вверх — правильный ответ
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964'
+    correctAnswers.value++
+  } else if (tiltBeta > 10) {
+    // Наклон вниз — неправильный ответ
+    answerStatus.value = 'incorrect'
+    currentAnswerColor.value = '#FC5F55'
+  } else {
+    return // Игнорируем небольшие наклоны
+  }
+
+  setTimeout(() => {
+    if (currentIndex.value < props.questions.length - 1) {
+      currentIndex.value++
+      showNextQuestion()
+    } else {
+      currentQuestion.value = null // Завершаем викторину
+      emit('gameEnded')
     }
   }, 1000)
 }
@@ -246,11 +280,13 @@ const startQuiz = () => {
 }
 
 onMounted(() => {
+  window.addEventListener('deviceorientation', handleDeviceTilt, true)
   isQuizActive.value = true // Установить isQuizActive в true здесь
   startQuiz()
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('deviceorientation', handleDeviceTilt, true)
   clearInterval(timerInterval.value)
 })
 
