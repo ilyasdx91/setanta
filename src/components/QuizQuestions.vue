@@ -236,30 +236,37 @@ const handleClick = event => {
   }, 1000)
 }
 
-let lastTiltTime = 0
+//================
 
-const handleTilt = data => {
-  const currentTime = Date.now()
-  if (!currentQuestion.value || currentTime - lastTiltTime < 1000) return
+// Функция для обработки изменения ориентации устройства
+const handleDeviceOrientation = event => {
+  const { beta } = event // Получаем угол наклона по оси beta (вверх/вниз)
 
-  lastTiltTime = currentTime
+  // Порог наклона, можно настроить
+  const tiltThreshold = 10 // Порог для наклона вверх
 
-  const { beta } = data
-
-  if (beta < -10) {
-    // Наклон вперед (верхняя часть вниз) - правильный ответ
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-    correctAnswers.value++
-    window.Telegram.WebApp.HapticFeedback.impactOccurred('light') // тактильный отклик
-  } else if (beta > 10) {
-    // Наклон назад (верхняя часть вверх) - неправильный ответ
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55'
-    window.Telegram.WebApp.HapticFeedback.impactOccurred('light') // тактильный отклик
+  // Наклон вверх (если beta > tiltThreshold)
+  if (beta > tiltThreshold) {
+    handleTiltForward() // Переход к следующему вопросу
   }
+}
 
-  setTimeout(showNextQuestion, 1000)
+// Обработчик для наклона вверх (к следующему вопросу)
+const handleTiltForward = () => {
+  if (currentIndex.value < props.questions.length - 1) {
+    currentIndex.value++ // Переход к следующему вопросу
+    showNextQuestion() // Показать следующий вопрос
+  } else {
+    currentQuestion.value = null // Завершаем игру
+    emit('gameEnded') // Сообщаем об окончании игры
+  }
+}
+
+// Убедитесь, что WebApp Telegram готово
+if (window.Telegram?.WebApp) {
+  window.Telegram.WebApp.ready() // Инициализация WebApp
+  // Подписка на события ориентации устройства
+  window.Telegram.WebApp.onEvent('deviceorientation', handleDeviceOrientation)
 }
 
 //=====================================================
@@ -277,14 +284,14 @@ onMounted(() => {
   isQuizActive.value = true // Установить isQuizActive в true здесь
 
   if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.onEvent('device_orientation', handleTilt)
+    window.Telegram.WebApp.ready() // Telegram готов
+    //  window.Telegram.WebApp.lockOrientation('landscape') // Альбомная ориентация
   }
   startQuiz()
 })
 
 onBeforeUnmount(() => {
   if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.offEvent('device_orientation', handleTilt)
   }
   clearInterval(timerInterval.value)
 })
