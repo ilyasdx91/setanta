@@ -146,7 +146,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, onBeforeUnmount, computed } from 'vue'
+import {
+  ref,
+  reactive,
+  watchEffect,
+  onMounted,
+  onUnmounted,
+  onBeforeUnmount,
+  computed,
+} from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 //==========================
