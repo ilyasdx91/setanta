@@ -247,23 +247,14 @@ const handleClick = event => {
 
 //===================================================
 
-// Реактивные данные для ориентации устройства
-const orientation = reactive({
-  beta: 0, // Наклон вперед/назад (ось X)
-})
+let intervalId = null
+const orientation = ref({ beta: 0 }) // Используйте ref для реактивности
 
-// Переменная для хранения ID анимации
-let animationFrameId = null
-
-// Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
   if (deviceOrientation && deviceOrientation.beta !== null) {
-    orientation.beta = deviceOrientation.beta || 0
-
-    // Запускаем следующий кадр обновления
-    animationFrameId = requestAnimationFrame(updateOrientation)
+    orientation.value.beta = deviceOrientation.beta || 0
   }
 }
 
@@ -306,6 +297,7 @@ onMounted(() => {
     // Запуск отслеживания ориентации через API Telegram WebApp
     window.Telegram.WebApp.DeviceOrientation.start()
     updateOrientation() // Начинаем обновление данных в реальном времени
+    intervalId = setInterval(updateOrientation, 100) // Обновляем каждые 100 мс
   } else {
     console.error('DeviceOrientation не доступен.')
   }
