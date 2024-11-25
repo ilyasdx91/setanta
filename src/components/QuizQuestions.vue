@@ -103,6 +103,7 @@
         <p :style="{ color: currentAnswerColor }">
           {{ currentQuestion.question }}
         </p>
+        <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
       </div>
 
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
@@ -145,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onUnmounted, onBeforeUnmount, computed } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 //==========================
@@ -236,38 +237,48 @@ const handleClick = event => {
   }, 1000)
 }
 
-//================
+//===================================================
 
-// Функция для обработки изменения ориентации устройства
-const handleDeviceOrientation = event => {
-  const { beta } = event // Получаем угол наклона по оси beta (вверх/вниз)
+// Реактивные данные для ориентации устройства
+const orientation = reactive({
+  beta: 0, // Наклон вперед/назад (ось X)
+})
 
-  // Порог наклона, можно настроить
-  const tiltThreshold = 10 // Порог для наклона вверх
+// Переменная для хранения ID анимации
+let animationFrameId = null
 
-  // Наклон вверх (если beta > tiltThreshold)
-  if (beta > tiltThreshold) {
-    handleTiltForward() // Переход к следующему вопросу
+// Обновление данных ориентации через requestAnimationFrame
+const updateOrientation = () => {
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+
+  if (deviceOrientation && deviceOrientation.beta !== null) {
+    orientation.beta = deviceOrientation.beta || 0
+
+    // Запускаем следующий кадр обновления
+    animationFrameId = requestAnimationFrame(updateOrientation)
   }
 }
 
-// Обработчик для наклона вверх (к следующему вопросу)
+// Функция для перехода к следующему вопросу, если наклон по оси beta превышает порог
 const handleTiltForward = () => {
-  if (currentIndex.value < props.questions.length - 1) {
-    currentIndex.value++ // Переход к следующему вопросу
-    showNextQuestion() // Показать следующий вопрос
-  } else {
-    currentQuestion.value = null // Завершаем игру
-    emit('gameEnded') // Сообщаем об окончании игры
+  const tiltThreshold = 10 // Порог для наклона вперед/назад (по оси beta)
+  if (orientation.beta > tiltThreshold) {
+    // Переход к следующему вопросу
+    if (currentIndex.value < props.questions.length - 1) {
+      currentIndex.value++
+      showNextQuestion() // Функция, которая меняет текущий вопрос
+    } else {
+      // Завершаем игру
+      currentQuestion.value = null
+      emit('gameEnded')
+    }
   }
 }
 
-// Убедитесь, что WebApp Telegram готово
-if (window.Telegram?.WebApp) {
-  window.Telegram.WebApp.ready() // Инициализация WebApp
-  // Подписка на события ориентации устройства
-  window.Telegram.WebApp.onEvent('deviceorientation', handleDeviceOrientation)
-}
+// Слушаем событие изменения ориентации устройства
+watchEffect(() => {
+  handleTiltForward() // Проверяем наклон устройства при каждом обновлении
+})
 
 //=====================================================
 
@@ -283,16 +294,29 @@ const startQuiz = () => {
 onMounted(() => {
   isQuizActive.value = true // Установить isQuizActive в true здесь
 
-  if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready() // Telegram готов
-    //  window.Telegram.WebApp.lockOrientation('landscape') // Альбомная ориентация
+  if (window.Telegram?.WebApp?.DeviceOrientation) {
+    // Запуск отслеживания ориентации через API Telegram WebApp
+    window.Telegram.WebApp.DeviceOrientation.start()
+    updateOrientation() // Начинаем обновление данных в реальном времени
+  } else {
+    console.error('DeviceOrientation не доступен.')
   }
   startQuiz()
 })
+// Остановка отслеживания ориентации при размонтировании компонента
+onUnmounted(() => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId) // Останавливаем обновление через requestAnimationFrame
+  }
+
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation) {
+    // Останавливаем отслеживание ориентации
+    deviceOrientation.stop() // Правильный способ остановить отслеживание
+  }
+})
 
 onBeforeUnmount(() => {
-  if (window.Telegram.WebApp) {
-  }
   clearInterval(timerInterval.value)
 })
 
