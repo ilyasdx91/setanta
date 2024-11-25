@@ -145,29 +145,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
+//==========================
 const gameSettings = useGameSettingsStore()
 
+// Таймер отсчета
 const timeLeft = ref(gameSettings.gameTime)
 const timerInterval = ref(null)
 
+// Форматирование времени для отображения
 const formattedTime = computed(() => {
   const minutes = Math.floor(timeLeft.value / 60)
   const seconds = timeLeft.value % 60
   return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
 })
 
+// Начало отсчета времени
 const startTimer = () => {
   timerInterval.value = setInterval(() => {
     if (timeLeft.value > 0) {
       timeLeft.value--
     } else {
-      endGame()
+      clearInterval(timerInterval.value)
+      // Завершаем игру, когда время истекло
+      currentQuestion.value = null // Можно здесь реализовать завершение игры
+      emit('gameEnded') // Сообщаем об окончании игры
     }
   }, 1000)
 }
+//==========================
 
 const props = defineProps({
   questions: {
@@ -176,62 +184,87 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['gameEnded'])
-
 const currentQuestion = ref(null)
 const currentAnswerColor = ref('#FFD106')
-const answerStatus = ref('')
+const answerStatus = ref('') // 'correct' | 'incorrect' | ''
 const currentIndex = ref(0)
-const correctAnswers = ref(0)
-const totalQuestions = ref(props.questions.length)
-const isQuizActive = ref(false)
-let lastOrientationTime = 0
 
-const questionProgress = computed(
-  () => `${currentIndex.value + 1}/${totalQuestions.value}`,
-)
+const correctAnswers = ref(0)
+const totalQuestions = ref(props.questions.length) // Инициализируем здесь
+const isQuizActive = ref(false) // Флаг для активности викторины
+
+// Подсчет текущего номера вопроса и общего количества
+const questionProgress = computed(() => {
+  console.log(
+    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`,
+  )
+  return `${currentIndex.value + 1}/${props.questions.length}`
+})
 
 const showNextQuestion = () => {
-  answerStatus.value = ''
-  currentAnswerColor.value = '#FFD106'
+  // Сброс состояния ответа перед показом следующего вопроса
+  answerStatus.value = '' // Сбросить статус ответа
+  currentAnswerColor.value = '#FFD106' // Вернуть исходный цвет
 
   if (currentIndex.value < props.questions.length) {
     currentQuestion.value = props.questions[currentIndex.value]
-    currentIndex.value++ // Увеличиваем currentIndex здесь
   } else {
-    endGame() // Завершаем игру, когда вопросы закончились
+    currentQuestion.value = null
   }
 }
 
-const handleDeviceTilt = data => {
+const handleClick = event => {
+  if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
+  const position =
+    event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
+  if (position === 'correct') {
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964'
+  } else {
+    answerStatus.value = 'incorrect'
+    currentAnswerColor.value = '#FC5F55'
+  }
+
+  setTimeout(() => {
+    if (currentIndex.value < props.questions.length - 1) {
+      currentIndex.value++ // Индекс увеличивается
+      showNextQuestion() // Показать следующий вопрос
+    } else {
+      currentQuestion.value = null // Завершаем викторину
+      emit('gameEnded') // Сообщаем родителю, что игра закончена
+    }
+  }, 1000)
+}
+
+let lastTiltTime = 0
+
+const handleTilt = data => {
   const currentTime = Date.now()
+  if (!currentQuestion.value || currentTime - lastTiltTime < 1000) return
 
-  if (!currentQuestion.value || currentTime - lastOrientationTime < 1000) return
-
-  lastOrientationTime = currentTime
+  lastTiltTime = currentTime
 
   const { beta } = data
 
   if (beta < -10) {
+    // Наклон вперед (верхняя часть вниз) - правильный ответ
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
     correctAnswers.value++
+    window.Telegram.WebApp.HapticFeedback.impactOccurred('light') // тактильный отклик
   } else if (beta > 10) {
+    // Наклон назад (верхняя часть вверх) - неправильный ответ
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
+    window.Telegram.WebApp.HapticFeedback.impactOccurred('light') // тактильный отклик
   }
 
   setTimeout(showNextQuestion, 1000)
 }
 
+//=====================================================
+
 const startQuiz = () => {
-  if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready()
-    window.Telegram.WebApp.expand()
-    window.Telegram.WebApp.BackButton.onClick(() =>
-      window.Telegram.WebApp.close(),
-    )
-  }
   currentIndex.value = 0
   correctAnswers.value = 0
   showNextQuestion()
@@ -240,38 +273,23 @@ const startQuiz = () => {
   isQuizActive.value = true
 }
 
-const endGame = () => {
-  clearInterval(timerInterval.value)
-  currentQuestion.value = null
-  isQuizActive.value = false
-  if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.MainButton.setText('Play Again')
-    window.Telegram.WebApp.MainButton.onClick(() => window.location.reload())
-    window.Telegram.WebApp.MainButton.show()
-  }
-
-  emit('gameEnded', {
-    correctAnswers: correctAnswers.value,
-    totalQuestions: totalQuestions.value,
-  })
-}
-
 onMounted(() => {
-  if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.onEvent('device_orientation', handleDeviceTilt)
-  }
+  isQuizActive.value = true // Установить isQuizActive в true здесь
 
+  if (window.Telegram.WebApp) {
+    window.Telegram.WebApp.onEvent('device_orientation', handleTilt)
+  }
   startQuiz()
 })
 
 onBeforeUnmount(() => {
   if (window.Telegram.WebApp) {
-    window.Telegram.WebApp.offEvent('device_orientation', handleDeviceTilt)
-    window.Telegram.WebApp.MainButton.offClick() // Сбрасываем обработчик клика
+    window.Telegram.WebApp.offEvent('device_orientation', handleTilt)
   }
-
   clearInterval(timerInterval.value)
 })
+
+//=====================================================
 </script>
 
 <style scoped lang="scss">
