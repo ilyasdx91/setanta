@@ -260,7 +260,7 @@ const updateOrientation = () => {
 
 // Функция для перехода к следующему вопросу, если наклон по оси beta превышает порог
 const handleTiltForward = () => {
-  const tiltThreshold = 10 // Порог для наклона вперед/назад (по оси beta)
+  const tiltThreshold = 0.1 // Порог для наклона вперед/назад (по оси beta)
   if (orientation.beta > tiltThreshold) {
     // Переход к следующему вопросу
     if (currentIndex.value < props.questions.length - 1) {
