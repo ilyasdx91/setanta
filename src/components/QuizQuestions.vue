@@ -143,40 +143,30 @@
     </div>
   </div>
 </template>
+
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 const gameSettings = useGameSettingsStore()
 
-// Таймер отсчета
 const timeLeft = ref(gameSettings.gameTime)
 const timerInterval = ref(null)
 
-// Форматирование времени
 const formattedTime = computed(() => {
   const minutes = Math.floor(timeLeft.value / 60)
   const seconds = timeLeft.value % 60
   return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
 })
 
-// Начало таймера
 const startTimer = () => {
   timerInterval.value = setInterval(() => {
     if (timeLeft.value > 0) {
       timeLeft.value--
     } else {
-      endGame() // Вызов endGame при истечении времени
+      endGame()
     }
   }, 1000)
-}
-
-// Завершение игры
-const endGame = () => {
-  clearInterval(timerInterval.value)
-  currentQuestion.value = null
-  isQuizActive.value = false
-  emit('gameEnded')
 }
 
 const props = defineProps({
@@ -186,17 +176,20 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['gameEnded'])
+
 const currentQuestion = ref(null)
 const currentAnswerColor = ref('#FFD106')
 const answerStatus = ref('')
 const currentIndex = ref(0)
-
 const correctAnswers = ref(0)
+const totalQuestions = ref(props.questions.length)
 const isQuizActive = ref(false)
+let lastOrientationTime = 0
 
-const questionProgress = computed(() => {
-  return `${currentIndex.value + 1}/${props.questions.length}`
-})
+const questionProgress = computed(
+  () => `${currentIndex.value + 1}/${totalQuestions.value}`,
+)
 
 const showNextQuestion = () => {
   answerStatus.value = ''
@@ -204,15 +197,20 @@ const showNextQuestion = () => {
 
   if (currentIndex.value < props.questions.length) {
     currentQuestion.value = props.questions[currentIndex.value]
+    currentIndex.value++ // Увеличиваем currentIndex здесь
   } else {
-    currentQuestion.value = null
+    endGame() // Завершаем игру, когда вопросы закончились
   }
 }
 
 const handleDeviceTilt = data => {
-  const { beta } = data
+  const currentTime = Date.now()
 
-  if (!currentQuestion.value) return
+  if (!currentQuestion.value || currentTime - lastOrientationTime < 1000) return
+
+  lastOrientationTime = currentTime
+
+  const { beta } = data
 
   if (beta < -10) {
     answerStatus.value = 'correct'
@@ -221,21 +219,19 @@ const handleDeviceTilt = data => {
   } else if (beta > 10) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
-  } else {
-    return
   }
 
-  setTimeout(() => {
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++
-      showNextQuestion()
-    } else {
-      endGame()
-    }
-  }, 1000)
+  setTimeout(showNextQuestion, 1000)
 }
 
 const startQuiz = () => {
+  if (window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready()
+    window.Telegram.WebApp.expand()
+    window.Telegram.WebApp.BackButton.onClick(() =>
+      window.Telegram.WebApp.close(),
+    )
+  }
   currentIndex.value = 0
   correctAnswers.value = 0
   showNextQuestion()
@@ -244,20 +240,40 @@ const startQuiz = () => {
   isQuizActive.value = true
 }
 
+const endGame = () => {
+  clearInterval(timerInterval.value)
+  currentQuestion.value = null
+  isQuizActive.value = false
+  if (window.Telegram.WebApp) {
+    window.Telegram.WebApp.MainButton.setText('Play Again')
+    window.Telegram.WebApp.MainButton.onClick(() => window.location.reload())
+    window.Telegram.WebApp.MainButton.show()
+  }
+
+  emit('gameEnded', {
+    correctAnswers: correctAnswers.value,
+    totalQuestions: totalQuestions.value,
+  })
+}
+
 onMounted(() => {
   if (window.Telegram.WebApp) {
     window.Telegram.WebApp.onEvent('device_orientation', handleDeviceTilt)
   }
+
   startQuiz()
 })
 
 onBeforeUnmount(() => {
   if (window.Telegram.WebApp) {
     window.Telegram.WebApp.offEvent('device_orientation', handleDeviceTilt)
+    window.Telegram.WebApp.MainButton.offClick() // Сбрасываем обработчик клика
   }
+
   clearInterval(timerInterval.value)
 })
 </script>
+
 <style scoped lang="scss">
 .quiz-container {
   display: flex;
