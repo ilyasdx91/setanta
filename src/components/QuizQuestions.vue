@@ -143,39 +143,41 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
-//==========================
 const gameSettings = useGameSettingsStore()
 
 // Таймер отсчета
 const timeLeft = ref(gameSettings.gameTime)
 const timerInterval = ref(null)
 
-// Форматирование времени для отображения
+// Форматирование времени
 const formattedTime = computed(() => {
   const minutes = Math.floor(timeLeft.value / 60)
   const seconds = timeLeft.value % 60
   return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
 })
 
-// Начало отсчета времени
+// Начало таймера
 const startTimer = () => {
   timerInterval.value = setInterval(() => {
     if (timeLeft.value > 0) {
       timeLeft.value--
     } else {
-      clearInterval(timerInterval.value)
-      // Завершаем игру, когда время истекло
-      currentQuestion.value = null // Можно здесь реализовать завершение игры
-      emit('gameEnded') // Сообщаем об окончании игры
+      endGame() // Вызов endGame при истечении времени
     }
   }, 1000)
 }
-//==========================
+
+// Завершение игры
+const endGame = () => {
+  clearInterval(timerInterval.value)
+  currentQuestion.value = null
+  isQuizActive.value = false
+  emit('gameEnded')
+}
 
 const props = defineProps({
   questions: {
@@ -186,25 +188,19 @@ const props = defineProps({
 
 const currentQuestion = ref(null)
 const currentAnswerColor = ref('#FFD106')
-const answerStatus = ref('') // 'correct' | 'incorrect' | ''
+const answerStatus = ref('')
 const currentIndex = ref(0)
 
 const correctAnswers = ref(0)
-const totalQuestions = ref(props.questions.length) // Инициализируем здесь
-const isQuizActive = ref(false) // Флаг для активности викторины
+const isQuizActive = ref(false)
 
-// Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
-  console.log(
-    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`,
-  )
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
 
 const showNextQuestion = () => {
-  // Сброс состояния ответа перед показом следующего вопроса
-  answerStatus.value = '' // Сбросить статус ответа
-  currentAnswerColor.value = '#FFD106' // Вернуть исходный цвет
+  answerStatus.value = ''
+  currentAnswerColor.value = '#FFD106'
 
   if (currentIndex.value < props.questions.length) {
     currentQuestion.value = props.questions[currentIndex.value]
@@ -213,48 +209,20 @@ const showNextQuestion = () => {
   }
 }
 
-const handleClick = event => {
-  if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
-  const position =
-    event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
-  if (position === 'correct') {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-  } else {
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55'
-  }
-
-  setTimeout(() => {
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++ // Индекс увеличивается
-      showNextQuestion() // Показать следующий вопрос
-    } else {
-      currentQuestion.value = null // Завершаем викторину
-      emit('gameEnded') // Сообщаем родителю, что игра закончена
-    }
-  }, 1000)
-}
-
-// ==========================
-// Логика обработки наклона устройства
-
-const handleDeviceTilt = event => {
-  const tiltBeta = event.beta // Наклон вперед-назад (диапазон от -90 до 90)
+const handleDeviceTilt = data => {
+  const { beta } = data
 
   if (!currentQuestion.value) return
 
-  if (tiltBeta < -10) {
-    // Наклон вверх — правильный ответ
+  if (beta < -10) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
     correctAnswers.value++
-  } else if (tiltBeta > 10) {
-    // Наклон вниз — неправильный ответ
+  } else if (beta > 10) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
   } else {
-    return // Игнорируем небольшие наклоны
+    return
   }
 
   setTimeout(() => {
@@ -262,13 +230,10 @@ const handleDeviceTilt = event => {
       currentIndex.value++
       showNextQuestion()
     } else {
-      currentQuestion.value = null // Завершаем викторину
-      emit('gameEnded')
+      endGame()
     }
   }, 1000)
 }
-
-//=====================================================
 
 const startQuiz = () => {
   currentIndex.value = 0
@@ -280,19 +245,19 @@ const startQuiz = () => {
 }
 
 onMounted(() => {
-  window.addEventListener('deviceorientation', handleDeviceTilt, true)
-  isQuizActive.value = true // Установить isQuizActive в true здесь
+  if (window.Telegram.WebApp) {
+    window.Telegram.WebApp.onEvent('device_orientation', handleDeviceTilt)
+  }
   startQuiz()
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('deviceorientation', handleDeviceTilt, true)
+  if (window.Telegram.WebApp) {
+    window.Telegram.WebApp.offEvent('device_orientation', handleDeviceTilt)
+  }
   clearInterval(timerInterval.value)
 })
-
-//=====================================================
 </script>
-
 <style scoped lang="scss">
 .quiz-container {
   display: flex;
