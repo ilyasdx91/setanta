@@ -10,7 +10,7 @@
     <!-- Игровой интерфейс -->
     <div v-else>
       <begin-game @countdownFinished="showQuestions" v-if="!showQuiz" />
-      <quiz-questions v-else :questions="questions" />
+      <quiz-questions v-else :questions="questions" @gameEnded="endGame" />
     </div>
   </div>
 </template>
@@ -34,6 +34,12 @@ const showQuestions = () => {
   showQuiz.value = true
 }
 
+// Завершение игры: сброс ориентации
+const endGame = () => {
+  showQuiz.value = false
+  unlockOrientation() // Отменяем фиксацию ориентации
+}
+
 // Проверяем ориентацию
 const checkOrientation = () => {
   isPortrait.value = window.innerWidth < window.innerHeight
@@ -47,6 +53,16 @@ const lockLandscape = () => {
     console.log('Ориентация заблокирована на альбомный режим.')
   } catch (error) {
     console.error('Не удалось заблокировать альбомный режим:', error)
+  }
+}
+
+// Сбрасываем ориентацию к значениям по умолчанию
+const unlockOrientation = () => {
+  try {
+    window.Telegram?.WebApp?.unlockOrientation()
+    console.log('Ориентация разблокирована.')
+  } catch (error) {
+    console.error('Не удалось разблокировать ориентацию:', error)
   }
 }
 
@@ -74,6 +90,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // Отписываемся от события изменения размера окна
   window.removeEventListener('resize', handleResize)
+
+  // Сбрасываем ориентацию
+  unlockOrientation()
 })
 </script>
 

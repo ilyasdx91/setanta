@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   .question-head {
     display: flex;
     align-items: center;
