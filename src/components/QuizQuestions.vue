@@ -256,7 +256,6 @@ const orientation = reactive({
 })
 
 let gamma = ref(0)
-
 // Переменная для хранения ID анимации
 let animationFrameId = null
 
@@ -275,6 +274,42 @@ const updateOrientation = () => {
     animationFrameId = requestAnimationFrame(updateOrientation)
   }
 }
+
+const handleTilt = gamma => {
+  //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
+  let answer = ''
+  if (gamma > 0.3) {
+    answer = 'correct'
+  }
+  if (gamma < -0.3) {
+    answer = 'incorrect'
+  }
+
+  if (position === 'correct') {
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964'
+  } else {
+    answerStatus.value = 'incorrect'
+    currentAnswerColor.value = '#FC5F55'
+  }
+
+  setTimeout(() => {
+    if (currentIndex.value < props.questions.length - 1) {
+      currentIndex.value++ // Индекс увеличивается
+      showNextQuestion() // Показать следующий вопрос
+    } else {
+      currentQuestion.value = null // Завершаем викторину
+      emit('gameEnded') // Сообщаем родителю, что игра закончена
+    }
+  }, 1000)
+}
+
+watch(gamma, newGamma => {
+  console.log(newGamma)
+  if (newGamma > 0.3) {
+    handleTilt(newGamma)
+  }
+})
 
 //=====================================================
 
