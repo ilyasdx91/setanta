@@ -269,6 +269,9 @@ const updateOrientation = () => {
 
     // Запускаем следующий кадр обновления
     requestAnimationFrame(updateOrientation)
+  } else {
+    alert(deviceOrientation)
+    alert(deviceOrientation.gamma)
   }
 }
 // Переменная для хранения ID анимации
