@@ -103,7 +103,9 @@
         <p :style="{ color: currentAnswerColor }">
           {{ currentQuestion.question }}
         </p>
+        <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
         <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
+        <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre>
       </div>
 
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
@@ -246,38 +248,24 @@ const handleClick = event => {
 }
 
 //===================================================
-
-let intervalId = null
-const orientation = ref({ beta: 0 }) // Используйте ref для реактивности
-
+const orientation = reactive({
+  alpha: 0, // Вращение вокруг оси Z
+  beta: 0, // Наклон вперед/назад (ось X)
+  gamma: 0, // Наклон влево/вправо (ось Y)
+})
+// Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
-  if (deviceOrientation && deviceOrientation.beta !== null) {
-    orientation.value.beta = deviceOrientation.beta || 0
+  if (deviceOrientation && deviceOrientation.alpha !== null) {
+    orientation.alpha = deviceOrientation.alpha || 0
+    orientation.beta = deviceOrientation.beta || 0
+    orientation.gamma = deviceOrientation.gamma || 0
+
+    // Запускаем следующий кадр обновления
+    animationFrameId = requestAnimationFrame(updateOrientation)
   }
 }
-
-// Функция для перехода к следующему вопросу, если наклон по оси beta превышает порог
-const handleTiltForward = () => {
-  const tiltThreshold = 0.1 // Порог для наклона вперед/назад (по оси beta)
-  if (orientation.beta > tiltThreshold) {
-    // Переход к следующему вопросу
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++
-      showNextQuestion() // Функция, которая меняет текущий вопрос
-    } else {
-      // Завершаем игру
-      currentQuestion.value = null
-      emit('gameEnded')
-    }
-  }
-}
-
-// Слушаем событие изменения ориентации устройства
-watchEffect(() => {
-  handleTiltForward() // Проверяем наклон устройства при каждом обновлении
-})
 
 //=====================================================
 
@@ -291,29 +279,17 @@ const startQuiz = () => {
 }
 
 onMounted(() => {
-  isQuizActive.value = true // Установить isQuizActive в true здесь
-
-  if (window.Telegram?.WebApp?.DeviceOrientation) {
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation) {
     // Запуск отслеживания ориентации через API Telegram WebApp
-    window.Telegram.WebApp.DeviceOrientation.start()
+    deviceOrientation.start() // Правильный способ запустить отслеживание
     updateOrientation() // Начинаем обновление данных в реальном времени
-    intervalId = setInterval(updateOrientation, 100) // Обновляем каждые 100 мс
   } else {
     console.error('DeviceOrientation не доступен.')
   }
-  startQuiz()
-})
-// Остановка отслеживания ориентации при размонтировании компонента
-onUnmounted(() => {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId) // Останавливаем обновление через requestAnimationFrame
-  }
 
-  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
-  if (deviceOrientation) {
-    // Останавливаем отслеживание ориентации
-    deviceOrientation.stop() // Правильный способ остановить отслеживание
-  }
+  isQuizActive.value = true // Установить isQuizActive в true здесь
+  startQuiz()
 })
 
 onBeforeUnmount(() => {
