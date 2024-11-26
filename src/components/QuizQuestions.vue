@@ -155,7 +155,7 @@ import {
   watch,
   onMounted,
   onBeforeUnmount,
-  computed,
+  computed
 } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
@@ -191,8 +191,8 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true,
-  },
+    required: true
+  }
 })
 
 const currentQuestion = ref(null)
@@ -207,7 +207,7 @@ const isQuizActive = ref(false) // Флаг для активности викт
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
   console.log(
-    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`,
+    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`
   )
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
@@ -251,7 +251,7 @@ const handleClick = event => {
 const orientation = reactive({
   alpha: 0, // Вращение вокруг оси Z
   beta: 0, // Наклон вперед/назад (ось X)
-  gamma: 0, // Наклон влево/вправо (ось Y)
+  gamma: 0 // Наклон влево/вправо (ось Y)
 })
 
 let gamma = ref(0)
@@ -277,13 +277,11 @@ const updateOrientation = () => {
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
   let answer = ''
-  if (gamma > 0.3) {
-    answer = 'correct'
+  if (gamma > 2.2) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
   }
-  if (gamma < -0.3) {
-    answer = 'incorrect'
+  if (gamma < -2.2) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
   }
@@ -309,7 +307,7 @@ const handleTilt = gamma => {
 
 watch(gamma, newGamma => {
   console.log(newGamma)
-  if (newGamma > 1.5 || newGamma < -1.5) {
+  if (newGamma > 2.2 || newGamma < -2.2) {
     handleTilt(newGamma)
   }
 })
@@ -329,8 +327,10 @@ onMounted(() => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
     // Запуск отслеживания ориентации через API Telegram WebApp
-    deviceOrientation.start() // Правильный способ запустить отслеживание
-    updateOrientation() // Начинаем обновление данных в реальном времени
+    deviceOrientation.start({ refresh_rate: 500 }, () => {
+      updateOrientation()
+    }) // Правильный способ запустить отслеживание
+    //updateOrientation() // Начинаем обновление данных в реальном времени
   } else {
     console.error('DeviceOrientation не доступен.')
   }
@@ -361,6 +361,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   height: 100%;
   min-height: calc(100vh - 70px);
+
   .question-head {
     display: flex;
     align-items: center;
@@ -368,6 +369,7 @@ onBeforeUnmount(() => {
     padding: 20px 0;
     font-size: 16px;
     font-weight: 700;
+
     .btn {
       display: flex;
       align-items: center;
@@ -390,6 +392,7 @@ onBeforeUnmount(() => {
         align-items: center;
         margin-right: 30px;
         opacity: 0.3;
+
         i {
           margin-right: 10px;
           display: flex;
@@ -399,8 +402,10 @@ onBeforeUnmount(() => {
       }
     }
   }
+
   .question {
     position: relative;
+
     .answer-status {
       position: absolute;
       top: -60px;
@@ -423,8 +428,10 @@ onBeforeUnmount(() => {
       color: #fc5f55;
     }
   }
+
   .question-footer {
     padding: 20px;
+
     .btn {
       display: block;
       font-size: 28px;
@@ -447,15 +454,18 @@ onBeforeUnmount(() => {
   .msg {
     text-align: center;
     color: #fff;
+
     i {
       font-size: 56px;
       font-style: normal;
     }
+
     h6 {
       font-size: 28px;
       font-weight: 700;
       margin: 5px 0;
     }
+
     p {
       font-size: 16px;
       font-weight: 500;
