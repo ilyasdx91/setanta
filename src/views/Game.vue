@@ -50,6 +50,10 @@ const checkOrientation = () => {
 const lockLandscape = () => {
   try {
     window.Telegram?.WebApp?.lockOrientation('landscape')
+    const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+    if (deviceOrientation) {
+      deviceOrientation.start()
+    }
     console.log('Ориентация заблокирована на альбомный режим.')
   } catch (error) {
     console.error('Не удалось заблокировать альбомный режим:', error)
