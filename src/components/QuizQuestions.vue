@@ -278,13 +278,13 @@ const zero = 1.5
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
   //let answer = ''
-  if (gamma > zero - 0.8) {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-  }
-  if (gamma < zero + 0.8) {
+  if (gamma > zero + 0.8) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
+  }
+  if (gamma < zero - 0.8) {
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964'
   }
 
   // if (answer === 'correct') {
