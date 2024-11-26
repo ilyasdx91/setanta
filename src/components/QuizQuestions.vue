@@ -273,15 +273,16 @@ const updateOrientation = () => {
 }
 // Переменная для хранения ID анимации
 //requestAnimationFrame(updateOrientation)
+const zero = 1.5
 
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
-  let answer = ''
-  if (gamma > 2.2) {
+  //let answer = ''
+  if (gamma > zero - 0.8) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
   }
-  if (gamma < -2.2) {
+  if (gamma < zero + 0.8) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
   }
@@ -306,9 +307,10 @@ const handleTilt = gamma => {
 }
 
 watch(gamma, newGamma => {
+  let _gamma = Math.abs(newGamma)
   console.log(newGamma)
-  if (newGamma > 2.2 || newGamma < -2.2) {
-    handleTilt(newGamma)
+  if (_gamma > zero + 0.8 || _gamma < zero - 0.8) {
+    handleTilt(_gamma)
   }
 })
 
