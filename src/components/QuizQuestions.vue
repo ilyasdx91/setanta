@@ -103,9 +103,10 @@
         <p :style="{ color: currentAnswerColor }">
           {{ currentQuestion.question }}
         </p>
-        <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
+        <!-- <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
         <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
-        <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre>
+        <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre> -->
+        <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
       </div>
 
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
@@ -254,6 +255,8 @@ const orientation = reactive({
   gamma: 0, // Наклон влево/вправо (ось Y)
 })
 
+let gamma = ref(0)
+
 // Переменная для хранения ID анимации
 let animationFrameId = null
 
@@ -261,10 +264,12 @@ let animationFrameId = null
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
-  if (deviceOrientation && deviceOrientation.alpha !== null) {
-    orientation.alpha = deviceOrientation.alpha || 0
-    orientation.beta = deviceOrientation.beta || 0
-    orientation.gamma = deviceOrientation.gamma || 0
+  if (deviceOrientation && deviceOrientation.gamma !== null) {
+    // orientation.alpha = deviceOrientation.alpha || 0
+    // orientation.beta = deviceOrientation.beta || 0
+    // orientation.gamma = deviceOrientation.gamma || 0
+
+    gamma.value = deviceOrientation.gamma || 0
 
     // Запускаем следующий кадр обновления
     animationFrameId = requestAnimationFrame(updateOrientation)
