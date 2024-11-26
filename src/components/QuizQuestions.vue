@@ -253,6 +253,10 @@ const orientation = reactive({
   beta: 0, // Наклон вперед/назад (ось X)
   gamma: 0, // Наклон влево/вправо (ось Y)
 })
+
+// Переменная для хранения ID анимации
+let animationFrameId = null
+
 // Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
