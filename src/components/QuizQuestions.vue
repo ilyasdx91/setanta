@@ -306,7 +306,7 @@ const handleTilt = gamma => {
 
 watch(gamma, newGamma => {
   console.log(newGamma)
-  if (newGamma > 0.3) {
+  if (newGamma > 0.3 || newGamma > -0.3) {
     handleTilt(newGamma)
   }
 })
