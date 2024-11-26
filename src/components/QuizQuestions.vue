@@ -154,7 +154,6 @@ import {
   reactive,
   watch,
   onMounted,
-  onUnmounted,
   onBeforeUnmount,
   computed,
 } from 'vue'
@@ -256,8 +255,6 @@ const orientation = reactive({
 })
 
 let gamma = ref(0)
-// Переменная для хранения ID анимации
-let animationFrameId = null
 
 // Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
@@ -271,9 +268,11 @@ const updateOrientation = () => {
     gamma.value = deviceOrientation.gamma || 0
 
     // Запускаем следующий кадр обновления
-    animationFrameId = requestAnimationFrame(updateOrientation)
+    requestAnimationFrame(updateOrientation)
   }
 }
+// Переменная для хранения ID анимации
+//requestAnimationFrame(updateOrientation)
 
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
@@ -310,7 +309,7 @@ const handleTilt = gamma => {
 
 watch(gamma, newGamma => {
   console.log(newGamma)
-  if (newGamma > 0.3 || newGamma > -0.3) {
+  if (newGamma > 0.3 || newGamma < -0.3) {
     handleTilt(newGamma)
   }
 })
