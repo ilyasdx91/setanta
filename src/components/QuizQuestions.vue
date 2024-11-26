@@ -152,7 +152,7 @@
 import {
   ref,
   reactive,
-  watchEffect,
+  watch,
   onMounted,
   onUnmounted,
   onBeforeUnmount,
