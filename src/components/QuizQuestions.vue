@@ -285,7 +285,7 @@ const handleTilt = gamma => {
     answer = 'incorrect'
   }
 
-  if (position === 'correct') {
+  if (answer === 'correct') {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
   } else {
