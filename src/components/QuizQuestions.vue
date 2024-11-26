@@ -280,18 +280,22 @@ const handleTilt = gamma => {
   let answer = ''
   if (gamma > 0.3) {
     answer = 'correct'
+    answerStatus.value = 'correct'
+    currentAnswerColor.value = '#4CD964'
   }
   if (gamma < -0.3) {
     answer = 'incorrect'
-  }
-
-  if (answer === 'correct') {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-  } else {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
   }
+
+  // if (answer === 'correct') {
+  //   answerStatus.value = 'correct'
+  //   currentAnswerColor.value = '#4CD964'
+  // } else {
+  //   answerStatus.value = 'incorrect'
+  //   currentAnswerColor.value = '#FC5F55'
+  // }
 
   setTimeout(() => {
     if (currentIndex.value < props.questions.length - 1) {
