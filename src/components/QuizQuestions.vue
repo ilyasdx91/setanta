@@ -320,8 +320,14 @@ watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
 
   if (_gamma > zero + 0.5) {
+    if (isQuizActive.value === false) {
+      incorrectPosition.value = true
+    }
     position.value = 2
   } else if (_gamma < zero - 0.5) {
+    if (isQuizActive.value === false) {
+      incorrectPosition.value = true
+    }
     position.value = -1
   } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
     position.value = 1
@@ -345,6 +351,9 @@ watch(gamma, newGamma => {
       }, 1000)
     }
   } else {
+    if (isQuizActive.value === false) {
+      incorrectPosition.value = true
+    }
     position.value = 0
   }
   console.log(newGamma)
