@@ -62,7 +62,7 @@
       </div>
 
       <div class="question" :key="currentIndex">
-        <p v-if="Math.abs(gamma - zero) > 0.5" class="notice">
+        <p v-if="incorrectPosition" class="notice">
           Верните устройство в исходное положение, чтобы продолжить.
         </p>
         <div v-else>
@@ -254,6 +254,7 @@ const orientation = reactive({
 
 let gamma = ref(0)
 let position = ref(0) // 0 - undefined, 1 - default, 2 - up (incorrect), -1 - down (correct)
+let incorrectPosition = ref(false)
 
 // Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
@@ -277,7 +278,8 @@ const updateOrientation = () => {
 //requestAnimationFrame(updateOrientation)
 const zero = 1.5
 
-let startingPosition = true
+//let startingPosition = true
+let answeredCurrentQuestion = false
 
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
@@ -300,7 +302,7 @@ const handleTilt = gamma => {
   //   currentAnswerColor.value = '#FC5F55'
   // }
   if (Math.abs(gamma.value - zero) <= 0.5) {
-    setTimeout(() => {
+    /*setTimeout(() => {
       if (currentIndex.value < props.questions.length - 1) {
         currentIndex.value++ // Индекс увеличивается
         showNextQuestion() // Показать следующий вопрос
@@ -308,7 +310,7 @@ const handleTilt = gamma => {
         currentQuestion.value = null // Завершаем викторину
         emit('gameEnded') // Сообщаем родителю, что игра закончена
       }
-    }, 1000)
+    }, 1000)*/
   }
 }
 
@@ -321,24 +323,40 @@ watch(gamma, newGamma => {
     position.value = -1
   } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
     position.value = 1
+    if (isQuizActive.value === false) {
+      startQuiz()
+    }
+    if (answeredCurrentQuestion) {
+      answeredCurrentQuestion = false
+      setTimeout(() => {
+        if (currentIndex.value < props.questions.length - 1) {
+          currentIndex.value++ // Индекс увеличивается
+          showNextQuestion() // Показать следующий вопрос
+        } else {
+          currentQuestion.value = null // Завершаем викторину
+          emit('gameEnded') // Сообщаем родителю, что игра закончена
+        }
+      }, 1000)
+    }
   } else {
     position.value = 0
   }
   console.log(newGamma)
   if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
     handleTilt(_gamma)
+    answeredCurrentQuestion = true
   }
 })
 
 //=====================================================
 
 const startQuiz = () => {
+  isQuizActive.value = true
   currentIndex.value = 0
   correctAnswers.value = 0
   showNextQuestion()
   timeLeft.value = gameSettings.gameTime
   startTimer()
-  isQuizActive.value = true
 }
 
 onMounted(() => {
@@ -353,8 +371,8 @@ onMounted(() => {
     console.error('DeviceOrientation не доступен.')
   }
 
-  isQuizActive.value = true // Установить isQuizActive в true здесь
-  startQuiz()
+  //isQuizActive.value = true // Установить isQuizActive в true здесь
+  //startQuiz()
 })
 
 onBeforeUnmount(() => {
