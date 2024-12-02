@@ -263,14 +263,17 @@ let gamma = ref(0)
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
-  if (deviceOrientation && deviceOrientation.gamma !== null) {
-    gamma.value = deviceOrientation.gamma || 0
-
-    // Запускаем следующий кадр обновления
-    requestAnimationFrame(updateOrientation)
+  if (deviceOrientation) {
+    deviceOrientation.start({ refresh_rate: 500 }, () => {
+      if (deviceOrientation.gamma !== null) {
+        gamma.value = deviceOrientation.gamma
+      } else {
+        console.warn('gamma is null')
+      }
+      requestAnimationFrame(updateOrientation)
+    })
   } else {
-    alert(deviceOrientation)
-    alert(deviceOrientation.gamma)
+    console.error('DeviceOrientation API недоступен')
   }
 }
 // Переменная для хранения ID анимации
