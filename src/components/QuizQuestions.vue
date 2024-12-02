@@ -267,8 +267,8 @@ const updateOrientation = () => {
     // Запускаем следующий кадр обновления
     requestAnimationFrame(updateOrientation)
   } else {
-    alert(deviceOrientation)
-    alert(deviceOrientation.gamma)
+    // alert(deviceOrientation)
+    // alert(deviceOrientation.gamma)
   }
 }
 // Переменная для хранения ID анимации
@@ -280,7 +280,7 @@ let startingPosition = true
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
   //let answer = ''
-  startingPosition = true
+
   if (gamma > zero + 0.5) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
@@ -307,9 +307,6 @@ const handleTilt = gamma => {
         emit('gameEnded') // Сообщаем родителю, что игра закончена
       }
     }, 1000)
-  } else {
-    startingPosition = false
-    //setTimeout(handleTilt, 200)
   }
 }
 
