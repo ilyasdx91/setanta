@@ -62,7 +62,7 @@
       </div>
 
       <div class="question" :key="currentIndex">
-        <p v-if="!startingPosition" class="notice">
+        <p v-if="Math.abs(gamma - zero) > 0.5" class="notice">
           Верните устройство в исходное положение, чтобы продолжить.
         </p>
         <div v-else>
