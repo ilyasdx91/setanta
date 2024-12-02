@@ -266,7 +266,8 @@ const updateOrientation = () => {
 
   if (deviceOrientation) {
     deviceOrientation.start({ refresh_rate: 500 }, () => {
-      if (deviceOrientation.gamma !== null) {
+      const newGamma = deviceOrientation.gamma
+      if (newGamma !== null) {
         gamma.value = deviceOrientation.gamma
       } else {
         console.warn('gamma is null')
@@ -333,6 +334,7 @@ const startQuiz = () => {
 
 onMounted(() => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  updateOrientation()
   if (deviceOrientation) {
     // Запуск отслеживания ориентации через API Telegram WebApp
     deviceOrientation.start({ refresh_rate: 500 }, () => {
