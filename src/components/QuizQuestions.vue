@@ -149,14 +149,7 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  reactive,
-  watch,
-  onMounted,
-  onBeforeUnmount,
-  computed
-} from 'vue'
+import { ref, reactive, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 //==========================
@@ -191,8 +184,8 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const currentQuestion = ref(null)
@@ -207,7 +200,7 @@ const isQuizActive = ref(false) // Флаг для активности викт
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
   console.log(
-    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`
+    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`,
   )
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
@@ -251,7 +244,7 @@ const handleClick = event => {
 const orientation = reactive({
   alpha: 0, // Вращение вокруг оси Z
   beta: 0, // Наклон вперед/назад (ось X)
-  gamma: 0 // Наклон влево/вправо (ось Y)
+  gamma: 0, // Наклон влево/вправо (ось Y)
 })
 
 let gamma = ref(0)
@@ -281,11 +274,11 @@ const zero = 1.5
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
   //let answer = ''
-  if (gamma > zero + 0.8) {
+  if (gamma > zero + 0.5) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
   }
-  if (gamma < zero - 0.8) {
+  if (gamma < zero - 0.5) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
   }
@@ -312,7 +305,7 @@ const handleTilt = gamma => {
 watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
   console.log(newGamma)
-  if (_gamma > zero + 0.8 || _gamma < zero - 0.8) {
+  if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
     handleTilt(_gamma)
   }
 })
