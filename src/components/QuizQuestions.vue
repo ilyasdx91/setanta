@@ -100,7 +100,10 @@
             </svg>
           </span>
         </div>
-        <p :style="{ color: currentAnswerColor }">
+        <p v-if="Math.abs(gamma - zero) > 0.5" class="notice">
+          Верните устройство в исходное положение, чтобы продолжить.
+        </p>
+        <p v-else :style="{ color: currentAnswerColor }">
           {{ currentQuestion.question }}
         </p>
         <!-- <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
@@ -209,12 +212,19 @@ const showNextQuestion = () => {
   // Сброс состояния ответа перед показом следующего вопроса
   answerStatus.value = '' // Сбросить статус ответа
   currentAnswerColor.value = '#FFD106' // Вернуть исходный цвет
-
-  if (currentIndex.value < props.questions.length) {
-    currentQuestion.value = props.questions[currentIndex.value]
-  } else {
-    currentQuestion.value = null
+  const waitForReset = () => {
+    if (Math.abs(gamma.value - zero) <= 0.5) {
+      if (currentIndex.value < props.questions.length) {
+        currentQuestion.value = props.questions[currentIndex.value]
+      } else {
+        currentQuestion.value = null
+      }
+    } else {
+      // Проверяем снова через небольшой интервал
+      setTimeout(waitForReset, 200) // Рекурсивный вызов с ожиданием
+    }
   }
+  waitForReset() // Начать проверку ориентации
 }
 
 const handleClick = event => {
@@ -254,10 +264,6 @@ const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
   if (deviceOrientation && deviceOrientation.gamma !== null) {
-    // orientation.alpha = deviceOrientation.alpha || 0
-    // orientation.beta = deviceOrientation.beta || 0
-    // orientation.gamma = deviceOrientation.gamma || 0
-
     gamma.value = deviceOrientation.gamma || 0
 
     // Запускаем следующий кадр обновления
