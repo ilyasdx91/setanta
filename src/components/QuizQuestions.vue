@@ -149,6 +149,7 @@
     </div>
     <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
     <pre> {{ Math.abs(gamma - zero) }}</pre>
+    <pre>position: {{ position }}</pre>
   </div>
 </template>
 
@@ -188,8 +189,8 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true,
-  },
+    required: true
+  }
 })
 
 const currentQuestion = ref(null)
@@ -204,7 +205,7 @@ const isQuizActive = ref(false) // Флаг для активности викт
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
   console.log(
-    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`,
+    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`
   )
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
@@ -248,10 +249,11 @@ const handleClick = event => {
 const orientation = reactive({
   alpha: 0, // Вращение вокруг оси Z
   beta: 0, // Наклон вперед/назад (ось X)
-  gamma: 0, // Наклон влево/вправо (ось Y)
+  gamma: 0 // Наклон влево/вправо (ось Y)
 })
 
 let gamma = ref(0)
+let position = ref(0) // 0 - undefined, 1 - default, 2 - up (incorrect), -1 - down (correct)
 
 // Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
@@ -312,6 +314,16 @@ const handleTilt = gamma => {
 
 watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
+
+  if (_gamma > zero + 0.5) {
+    position.value = 2
+  } else if (_gamma < zero - 0.5) {
+    position.value = -1
+  } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
+    position.value = 1
+  } else {
+    position.value = 0
+  }
   console.log(newGamma)
   if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
     handleTilt(_gamma)
