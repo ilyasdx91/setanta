@@ -62,53 +62,53 @@
       </div>
 
       <div class="question" :key="currentIndex">
-        <div v-if="answerStatus === 'correct'" class="answer-status">
-          <span class="checkmark">
-            <svg
-              width="60"
-              height="60"
-              viewBox="0 0 60 60"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.5 30L27.5 35L37.5 25M52.5 30C52.5 42.4264 42.4264 52.5 30 52.5C17.5736 52.5 7.5 42.4264 7.5 30C7.5 17.5736 17.5736 7.49997 30 7.49997C42.4264 7.49997 52.5 17.5736 52.5 30Z"
-                stroke="#4CD964"
-                stroke-width="5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </span>
-        </div>
-        <div v-if="answerStatus === 'incorrect'" class="answer-status">
-          <span class="cross">
-            <svg
-              width="60"
-              height="60"
-              viewBox="0 0 60 60"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M25 35.0001L30 30.0001M30 30.0001L35 25.0001M30 30.0001L25 25.0001M30 30.0001L35 35.0001M52.5 30.0001C52.5 42.4265 42.4264 52.5001 30 52.5001C17.5736 52.5001 7.5 42.4265 7.5 30.0001C7.5 17.5737 17.5736 7.50012 30 7.50012C42.4264 7.50012 52.5 17.5737 52.5 30.0001Z"
-                stroke="#FC5F55"
-                stroke-width="5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </span>
-        </div>
         <p v-if="!startingPosition" class="notice">
           Верните устройство в исходное положение, чтобы продолжить.
         </p>
-        <p v-else :style="{ color: currentAnswerColor }">
-          {{ currentQuestion.question }}
-        </p>
-        <!-- <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
-        <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
-        <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre> -->
+        <div v-else>
+          <div v-if="answerStatus === 'correct'" class="answer-status">
+            <span class="checkmark">
+              <svg
+                width="60"
+                height="60"
+                viewBox="0 0 60 60"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M22.5 30L27.5 35L37.5 25M52.5 30C52.5 42.4264 42.4264 52.5 30 52.5C17.5736 52.5 7.5 42.4264 7.5 30C7.5 17.5736 17.5736 7.49997 30 7.49997C42.4264 7.49997 52.5 17.5736 52.5 30Z"
+                  stroke="#4CD964"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </div>
+          <div v-if="answerStatus === 'incorrect'" class="answer-status">
+            <span class="cross">
+              <svg
+                width="60"
+                height="60"
+                viewBox="0 0 60 60"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M25 35.0001L30 30.0001M30 30.0001L35 25.0001M30 30.0001L25 25.0001M30 30.0001L35 35.0001M52.5 30.0001C52.5 42.4265 42.4264 52.5001 30 52.5001C17.5736 52.5001 7.5 42.4265 7.5 30.0001C7.5 17.5737 17.5736 7.50012 30 7.50012C42.4264 7.50012 52.5 17.5737 52.5 30.0001Z"
+                  stroke="#FC5F55"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <p :style="{ color: currentAnswerColor }">
+            {{ currentQuestion.question }}
+          </p>
+        </div>
         <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
       </div>
 
