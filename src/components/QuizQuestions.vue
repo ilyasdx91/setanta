@@ -314,6 +314,8 @@ const handleTilt = gamma => {
   }
 }
 
+let _timer = null
+
 watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
 
@@ -323,6 +325,10 @@ watch(gamma, newGamma => {
     position.value = -1
   } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
     position.value = 1
+    incorrectPosition.value = false
+    if (_timer !== null) {
+      clearInterval(_timer)
+    }
     if (isQuizActive.value === false) {
       startQuiz()
     }
@@ -345,6 +351,11 @@ watch(gamma, newGamma => {
   if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
     handleTilt(_gamma)
     answeredCurrentQuestion = true
+    _timer = setTimeout(() => {
+      if (position.value !== 1) {
+        incorrectPosition.value = true
+      }
+    }, 100)
   }
 })
 
