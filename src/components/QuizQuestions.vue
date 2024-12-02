@@ -148,6 +148,7 @@
       </div>
       <button class="btn btn-yellow-transparent">Play this deck again</button>
     </div>
+    <pre>{{ Math.abs(gamma - zero) > 0.5 }}</pre>
   </div>
 </template>
 
