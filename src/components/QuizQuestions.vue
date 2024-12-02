@@ -109,7 +109,6 @@
         <!-- <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
         <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
         <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre> -->
-        <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
       </div>
 
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
@@ -148,6 +147,7 @@
       </div>
       <button class="btn btn-yellow-transparent">Play this deck again</button>
     </div>
+    <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
     <pre>{{ Math.abs(gamma - zero) > 0.5 }}</pre>
   </div>
 </template>
