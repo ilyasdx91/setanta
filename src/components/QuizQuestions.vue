@@ -109,7 +109,6 @@
             {{ currentQuestion.question }}
           </p>
         </div>
-        <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
       </div>
 
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
@@ -148,6 +147,8 @@
       </div>
       <button class="btn btn-yellow-transparent">Play this deck again</button>
     </div>
+    <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
+    <pre> {{ Math.abs(gamma - zero) }}</pre>
   </div>
 </template>
 
