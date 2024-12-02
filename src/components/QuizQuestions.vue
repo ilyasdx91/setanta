@@ -100,7 +100,7 @@
             </svg>
           </span>
         </div>
-        <p v-if="Math.abs(gamma - zero) > 0.5" class="notice">
+        <p v-if="!startingPosition" class="notice">
           Верните устройство в исходное положение, чтобы продолжить.
         </p>
         <p v-else :style="{ color: currentAnswerColor }">
@@ -109,6 +109,7 @@
         <!-- <pre>Alpha (Z-axis rotation): {{ orientation.alpha }}</pre>
         <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
         <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre> -->
+        <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
       </div>
 
       <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
@@ -147,8 +148,6 @@
       </div>
       <button class="btn btn-yellow-transparent">Play this deck again</button>
     </div>
-    <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
-    <pre>{{ Math.abs(gamma - zero) > 0.5 }}</pre>
   </div>
 </template>
 
@@ -213,19 +212,12 @@ const showNextQuestion = () => {
   // Сброс состояния ответа перед показом следующего вопроса
   answerStatus.value = '' // Сбросить статус ответа
   currentAnswerColor.value = '#FFD106' // Вернуть исходный цвет
-  const waitForReset = () => {
-    if (Math.abs(gamma.value - zero) <= 0.5) {
-      if (currentIndex.value < props.questions.length) {
-        currentQuestion.value = props.questions[currentIndex.value]
-      } else {
-        currentQuestion.value = null
-      }
-    } else {
-      // Проверяем снова через небольшой интервал
-      setTimeout(waitForReset, 200) // Рекурсивный вызов с ожиданием
-    }
+
+  if (currentIndex.value < props.questions.length) {
+    currentQuestion.value = props.questions[currentIndex.value]
+  } else {
+    currentQuestion.value = null
   }
-  waitForReset() // Начать проверку ориентации
 }
 
 const handleClick = event => {
@@ -264,27 +256,30 @@ let gamma = ref(0)
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
-  if (deviceOrientation) {
-    deviceOrientation.start({ refresh_rate: 500 }, () => {
-      const newGamma = deviceOrientation.gamma
-      if (newGamma !== null) {
-        gamma.value = deviceOrientation.gamma
-      } else {
-        console.warn('gamma is null')
-      }
-      requestAnimationFrame(updateOrientation)
-    })
+  if (deviceOrientation && deviceOrientation.gamma !== null) {
+    // orientation.alpha = deviceOrientation.alpha || 0
+    // orientation.beta = deviceOrientation.beta || 0
+    // orientation.gamma = deviceOrientation.gamma || 0
+
+    gamma.value = deviceOrientation.gamma || 0
+
+    // Запускаем следующий кадр обновления
+    requestAnimationFrame(updateOrientation)
   } else {
-    console.error('DeviceOrientation API недоступен')
+    alert(deviceOrientation)
+    alert(deviceOrientation.gamma)
   }
 }
 // Переменная для хранения ID анимации
 //requestAnimationFrame(updateOrientation)
 const zero = 1.5
 
+let startingPosition = true
+
 const handleTilt = gamma => {
   //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
   //let answer = ''
+  startingPosition = true
   if (gamma > zero + 0.5) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
@@ -301,16 +296,20 @@ const handleTilt = gamma => {
   //   answerStatus.value = 'incorrect'
   //   currentAnswerColor.value = '#FC5F55'
   // }
-
-  setTimeout(() => {
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++ // Индекс увеличивается
-      showNextQuestion() // Показать следующий вопрос
-    } else {
-      currentQuestion.value = null // Завершаем викторину
-      emit('gameEnded') // Сообщаем родителю, что игра закончена
-    }
-  }, 1000)
+  if (Math.abs(gamma.value - zero) <= 0.5) {
+    setTimeout(() => {
+      if (currentIndex.value < props.questions.length - 1) {
+        currentIndex.value++ // Индекс увеличивается
+        showNextQuestion() // Показать следующий вопрос
+      } else {
+        currentQuestion.value = null // Завершаем викторину
+        emit('gameEnded') // Сообщаем родителю, что игра закончена
+      }
+    }, 1000)
+  } else {
+    startingPosition = false
+    //setTimeout(handleTilt, 200)
+  }
 }
 
 watch(gamma, newGamma => {
@@ -334,7 +333,6 @@ const startQuiz = () => {
 
 onMounted(() => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
-  updateOrientation()
   if (deviceOrientation) {
     // Запуск отслеживания ориентации через API Telegram WebApp
     deviceOrientation.start({ refresh_rate: 500 }, () => {
