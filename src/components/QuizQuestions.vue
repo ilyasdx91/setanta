@@ -282,11 +282,14 @@ const zero = 1.5
 let answeredCurrentQuestion = false
 
 const handleTilt = gamma => {
-  if (gamma > zero + 0.5) {
+  //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
+  //let answer = ''
+
+  if (gamma > zero + 0.3) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
   }
-  if (gamma < zero - 0.5) {
+  if (gamma < zero - 0.3) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
   }
@@ -309,17 +312,17 @@ let _timer = null
 watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
 
-  if (_gamma > zero + 0.7) {
+  if (_gamma > zero + 0.5) {
     if (isQuizActive.value === false) {
       incorrectPosition.value = true
     }
     position.value = 2
-  } else if (_gamma < zero - 0.7) {
+  } else if (_gamma < zero - 0.5) {
     if (isQuizActive.value === false) {
       incorrectPosition.value = true
     }
     position.value = -1
-  } else if (_gamma > zero - 0.7 && _gamma < zero + 0.7) {
+  } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
     position.value = 1
     incorrectPosition.value = false
     if (_timer !== null) {
@@ -347,7 +350,7 @@ watch(gamma, newGamma => {
     position.value = 0
   }
   console.log(newGamma)
-  if (_gamma > zero + 0.7 || _gamma < zero - 0.7) {
+  if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
     handleTilt(_gamma)
     answeredCurrentQuestion = true
     _timer = setTimeout(() => {
