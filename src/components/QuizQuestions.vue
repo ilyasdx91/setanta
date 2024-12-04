@@ -312,17 +312,17 @@ let _timer = null
 watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
 
-  if (_gamma > zero + 0.5) {
+  if (_gamma > zero + 0.6) {
     if (isQuizActive.value === false) {
       incorrectPosition.value = true
     }
     position.value = 2
-  } else if (_gamma < zero - 0.5) {
+  } else if (_gamma < zero - 0.6) {
     if (isQuizActive.value === false) {
       incorrectPosition.value = true
     }
     position.value = -1
-  } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
+  } else if (_gamma > zero - 0.6 && _gamma < zero + 0.6) {
     position.value = 1
     incorrectPosition.value = false
     if (_timer !== null) {
@@ -350,7 +350,7 @@ watch(gamma, newGamma => {
     position.value = 0
   }
   console.log(newGamma)
-  if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
+  if (_gamma > zero + 0.3 || _gamma < zero - 0.3) {
     handleTilt(_gamma)
     answeredCurrentQuestion = true
     _timer = setTimeout(() => {
