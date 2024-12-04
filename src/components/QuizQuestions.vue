@@ -159,6 +159,13 @@ import { useGameSettingsStore } from '@/stores/gameSettings'
 
 // Инициализация состояния
 const gameSettings = useGameSettingsStore()
+const props = defineProps({
+  questions: {
+    type: Array,
+    required: true,
+  },
+})
+
 const currentQuestion = ref(null)
 const currentIndex = ref(0)
 const answerStatus = ref('')
@@ -185,7 +192,7 @@ const handleClick = event => {
   if (!currentQuestion.value) return
   const position =
     event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
-  answerStatus.value = position === 'correct' ? 'correct' : 'incorrect'
+  answerStatus.value = position
   currentAnswerColor.value = position === 'correct' ? '#4CD964' : '#FC5F55'
 
   setTimeout(() => {
@@ -232,24 +239,16 @@ const zero = 1.5
 
 watch(gamma, newGamma => {
   const absGamma = Math.abs(newGamma)
-  if (absGamma > zero + 0.6) {
-    incorrectPosition.value = true
-  } else if (absGamma < zero - 0.6) {
-    incorrectPosition.value = true
-  } else {
-    incorrectPosition.value = false
-    if (!isQuizActive.value) {
-      startQuiz()
-    }
+  incorrectPosition.value = absGamma > zero + 0.6 || absGamma < zero - 0.6
+  if (!isQuizActive.value && !incorrectPosition.value) {
+    startQuiz()
   }
 })
 
 onMounted(() => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
-    deviceOrientation.start({ refresh_rate: 500 }, () => {
-      updateOrientation()
-    })
+    deviceOrientation.start({ refresh_rate: 500 }, updateOrientation)
   } else {
     console.error('DeviceOrientation не доступен.')
   }
