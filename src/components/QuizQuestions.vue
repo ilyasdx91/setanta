@@ -189,8 +189,8 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const currentQuestion = ref(null)
@@ -205,7 +205,7 @@ const isQuizActive = ref(false) // Флаг для активности викт
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
   console.log(
-    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`
+    `Progress updated: ${currentIndex.value + 1}/${props.questions.length}`,
   )
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
@@ -249,7 +249,7 @@ const handleClick = event => {
 const orientation = reactive({
   alpha: 0, // Вращение вокруг оси Z
   beta: 0, // Наклон вперед/назад (ось X)
-  gamma: 0 // Наклон влево/вправо (ось Y)
+  gamma: 0, // Наклон влево/вправо (ось Y)
 })
 
 let gamma = ref(0)
@@ -282,9 +282,6 @@ const zero = 1.5
 let answeredCurrentQuestion = false
 
 const handleTilt = gamma => {
-  //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
-  //let answer = ''
-
   if (gamma > zero + 0.5) {
     answerStatus.value = 'incorrect'
     currentAnswerColor.value = '#FC5F55'
@@ -294,13 +291,6 @@ const handleTilt = gamma => {
     currentAnswerColor.value = '#4CD964'
   }
 
-  // if (answer === 'correct') {
-  //   answerStatus.value = 'correct'
-  //   currentAnswerColor.value = '#4CD964'
-  // } else {
-  //   answerStatus.value = 'incorrect'
-  //   currentAnswerColor.value = '#FC5F55'
-  // }
   if (Math.abs(gamma.value - zero) <= 0.5) {
     /*setTimeout(() => {
       if (currentIndex.value < props.questions.length - 1) {
@@ -319,17 +309,17 @@ let _timer = null
 watch(gamma, newGamma => {
   let _gamma = Math.abs(newGamma)
 
-  if (_gamma > zero + 0.5) {
+  if (_gamma > zero + 0.7) {
     if (isQuizActive.value === false) {
       incorrectPosition.value = true
     }
     position.value = 2
-  } else if (_gamma < zero - 0.5) {
+  } else if (_gamma < zero - 0.7) {
     if (isQuizActive.value === false) {
       incorrectPosition.value = true
     }
     position.value = -1
-  } else if (_gamma > zero - 0.5 && _gamma < zero + 0.5) {
+  } else if (_gamma > zero - 0.7 && _gamma < zero + 0.7) {
     position.value = 1
     incorrectPosition.value = false
     if (_timer !== null) {
@@ -357,7 +347,7 @@ watch(gamma, newGamma => {
     position.value = 0
   }
   console.log(newGamma)
-  if (_gamma > zero + 0.5 || _gamma < zero - 0.5) {
+  if (_gamma > zero + 0.7 || _gamma < zero - 0.7) {
     handleTilt(_gamma)
     answeredCurrentQuestion = true
     _timer = setTimeout(() => {
