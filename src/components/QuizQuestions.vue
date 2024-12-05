@@ -355,8 +355,6 @@ watch(gamma, newGamma => {
     position.value = 0 // Неопределенное положение
   }
 
-  console.log(newGamma)
-
   // Обработка наклона
   if (isTiltedDown || isTiltedUp) {
     handleTilt(_gamma)
@@ -545,6 +543,10 @@ onBeforeUnmount(() => {
       font-size: 16px;
       font-weight: 500;
     }
+  }
+
+  .btn-yellow-transparent {
+    text-align: center;
   }
 }
 </style>
