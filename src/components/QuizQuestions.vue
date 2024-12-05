@@ -55,6 +55,7 @@
                 />
               </svg>
             </i>
+            {{ questionProgress }}
           </div>
 
           <div class="timer">{{ formattedTime }}</div>
@@ -146,8 +147,8 @@
       </router-link>
       <div class="msg">
         <i>🥳</i>
-        <h6>You got 8 cards!</h6>
-        <p>out of 21 cards</p>
+        <h6>You got {{ correctQuestions }} cards!</h6>
+        <p>out of {{ totalQuestions }} cards</p>
       </div>
       <button class="btn btn-yellow-transparent">Play this deck again</button>
     </div>
@@ -226,49 +227,40 @@ const showNextQuestion = () => {
   }
 }
 
-const handleClick = event => {
-  if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
-  const position =
-    event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
-  if (position === 'correct') {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-  } else {
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55'
-  }
+// const handleClick = event => {
+//   if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
+//   const position =
+//     event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
+//   if (position === 'correct') {
+//     answerStatus.value = 'correct'
+//     currentAnswerColor.value = '#4CD964'
+//   } else {
+//     answerStatus.value = 'incorrect'
+//     currentAnswerColor.value = '#FC5F55'
+//   }
 
-  setTimeout(() => {
-    if (currentIndex.value < props.questions.length - 1) {
-      currentIndex.value++ // Индекс увеличивается
-      showNextQuestion() // Показать следующий вопрос
-    } else {
-      currentQuestion.value = null // Завершаем викторину
-      emit('gameEnded') // Сообщаем родителю, что игра закончена
-    }
-  }, 1000)
-}
+//   setTimeout(() => {
+//     if (currentIndex.value < props.questions.length - 1) {
+//       currentIndex.value++ // Индекс увеличивается
+//       showNextQuestion() // Показать следующий вопрос
+//     } else {
+//       currentQuestion.value = null // Завершаем викторину
+//       emit('gameEnded') // Сообщаем родителю, что игра закончена
+//     }
+//   }, 1000)
+// }
 
 //===================================================
-const orientation = reactive({
-  alpha: 0, // Вращение вокруг оси Z
-  beta: 0, // Наклон вперед/назад (ось X)
-  gamma: 0, // Наклон влево/вправо (ось Y)
-})
 
 let gamma = ref(0)
 let position = ref(0) // 0 - undefined, 1 - default, 2 - up (incorrect), -1 - down (correct)
 let incorrectPosition = ref(false)
-
+let correctQuestions = ref(0)
 // Обновление данных ориентации через requestAnimationFrame
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
 
   if (deviceOrientation && deviceOrientation.gamma !== null) {
-    // orientation.alpha = deviceOrientation.alpha || 0
-    // orientation.beta = deviceOrientation.beta || 0
-    // orientation.gamma = deviceOrientation.gamma || 0
-
     gamma.value = deviceOrientation.gamma || 0
 
     // Запускаем следующий кадр обновления
@@ -296,10 +288,11 @@ const handleTilt = gamma => {
   if (gamma < zero - 0.3) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
+    correctQuestions.value++
   }
 
-  if (Math.abs(gamma.value - zero) <= 0.5) {
-    /*setTimeout(() => {
+  //if (Math.abs(gamma.value - zero) <= 0.5) {
+  /*setTimeout(() => {
       if (currentIndex.value < props.questions.length - 1) {
         currentIndex.value++ // Индекс увеличивается
         showNextQuestion() // Показать следующий вопрос
@@ -308,33 +301,38 @@ const handleTilt = gamma => {
         emit('gameEnded') // Сообщаем родителю, что игра закончена
       }
     }, 1000)*/
-  }
+  // }
 }
 
 let _timer = null
 
 watch(gamma, newGamma => {
-  let _gamma = Math.abs(newGamma)
+  const _gamma = Math.abs(newGamma)
+  const isTiltedDown = _gamma < zero - 0.6
+  const isTiltedUp = _gamma > zero + 0.6
+  const isCentered = _gamma > zero - 0.6 && _gamma < zero + 0.6
 
-  if (_gamma > zero + 0.6) {
-    if (isQuizActive.value === false) {
-      incorrectPosition.value = true
-    }
-    position.value = 2
-  } else if (_gamma < zero - 0.6) {
-    if (isQuizActive.value === false) {
-      incorrectPosition.value = true
-    }
-    position.value = -1
-  } else if (_gamma > zero - 0.6 && _gamma < zero + 0.6) {
-    position.value = 1
+  // Устанавливаем неправильное положение, если викторина не активна
+  if (!isQuizActive.value) {
+    incorrectPosition.value = true
+  }
+
+  if (isTiltedDown) {
+    position.value = -1 // Наклон вниз (пропустить)
+  } else if (isTiltedUp) {
+    position.value = 2 // Наклон вверх (правильно)
+  } else if (isCentered) {
+    position.value = 1 // В центре
     incorrectPosition.value = false
+
     if (_timer !== null) {
       clearInterval(_timer)
     }
-    if (isQuizActive.value === false) {
+
+    if (!isQuizActive.value) {
       startQuiz()
     }
+
     if (answeredCurrentQuestion) {
       answeredCurrentQuestion = false
       setTimeout(() => {
@@ -348,13 +346,13 @@ watch(gamma, newGamma => {
       }, 1000)
     }
   } else {
-    if (isQuizActive.value === false) {
-      incorrectPosition.value = true
-    }
-    position.value = 0
+    position.value = 0 // Неопределенное положение
   }
+
   console.log(newGamma)
-  if (_gamma > zero + 0.3 || _gamma < zero - 0.3) {
+
+  // Обработка наклона
+  if (isTiltedDown || isTiltedUp) {
     handleTilt(_gamma)
     answeredCurrentQuestion = true
     _timer = setTimeout(() => {
@@ -364,7 +362,6 @@ watch(gamma, newGamma => {
     }, 100)
   }
 })
-
 //=====================================================
 
 const startQuiz = () => {
