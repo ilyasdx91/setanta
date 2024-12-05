@@ -119,7 +119,7 @@
         <div class="progress-bar">
           <span :style="{ width: questionProgressBar }"></span>
         </div>
-        <pre>{{ questionProgressBar }}</pre>
+        <!-- <pre>{{ questionProgressBar }}</pre> -->
         <router-link :to="{ name: 'Category', params: { id: 1 } }" class="btn">
           {{ $t('finish') }}
         </router-link>
@@ -150,11 +150,15 @@
         <h6>You got {{ correctQuestions }} cards!</h6>
         <p>out of {{ totalQuestions }} cards</p>
       </div>
-      <button class="btn btn-yellow-transparent">Play this deck again</button>
+      <router-link
+        :to="{ name: 'Category', params: { id: 1 } }"
+        class="btn btn-yellow-transparent"
+        >Play this deck again
+      </router-link>
     </div>
-    <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
+    <!-- <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
     <pre> {{ Math.abs(gamma - zero) }}</pre>
-    <pre>position: {{ position }}</pre>
+    <pre>position: {{ position }}</pre> -->
   </div>
 </template>
 
@@ -288,7 +292,9 @@ const handleTilt = gamma => {
   if (gamma < zero - 0.3) {
     answerStatus.value = 'correct'
     currentAnswerColor.value = '#4CD964'
-    correctQuestions.value++
+    if (currentQuestion.value !== null) {
+      correctQuestions.value++
+    }
   }
 
   //if (Math.abs(gamma.value - zero) <= 0.5) {
@@ -310,7 +316,7 @@ watch(gamma, newGamma => {
   const _gamma = Math.abs(newGamma)
   const isTiltedDown = _gamma < zero - 0.6
   const isTiltedUp = _gamma > zero + 0.6
-  const isCentered = _gamma > zero - 0.6 && _gamma < zero + 0.6
+  const isCentered = _gamma > zero - 0.3 && _gamma < zero + 0.3
 
   // Устанавливаем неправильное положение, если викторина не активна
   if (!isQuizActive.value) {
