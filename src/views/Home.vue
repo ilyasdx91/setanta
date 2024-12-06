@@ -11,6 +11,10 @@
     </div>
     <div v-if="videoEnded" class="categories">
       <h2>{{ $t('categories') }}</h2>
+
+      <pre>{{ telegramData }}</pre>
+      <pre>{{ themeParams }}</pre>
+      <pre>{{ telegram_id }}</pre>
       <ul>
         <li v-for="(item, index) in 7" :key="index">
           <router-link
@@ -44,4 +48,9 @@ const handleVideoEnd = () => {
   videoEnded.value = true
   sessionStorage.setItem('videoWatched', 'true') // Сохраняем состояние в sessionStorage
 }
+
+const telegram = window.Telegram.WebApp
+const telegramData = telegram.initDataUnsafe
+const themeParams = telegram.themeParams
+const telegram_id = telegram.initDataUnsafe?.user?.id
 </script>
