@@ -10,22 +10,33 @@
     <!-- Игровой интерфейс -->
     <div v-else>
       <begin-game @countdownFinished="showQuestions" v-if="!showQuiz" />
-      <quiz-questions v-else :questions="questions" @gameEnded="endGame" />
+      <quiz-questions
+        v-else
+        :questions="categoriesStore.questions"
+        @gameEnded="endGame"
+      />
+      <pre>{{ categoriesStore.questions }}</pre>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useRoute } from 'vue-router'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useCategoriesStore } from '@/stores/categories'
 import BeginGame from '@/components/BeginGame.vue'
 import QuizQuestions from '@/components/QuizQuestions.vue'
 
+const categoriesStore = useCategoriesStore()
+const route = useRoute()
+
 const showQuiz = ref(false)
-const questions = ref([
-  { id: 1, question: 'Что это?' },
-  { id: 2, question: 'Где это?' },
-  { id: 3, question: 'Как это?' },
-])
+
+// const questions = ref([
+//   { id: 1, question: 'Что это?' },
+//   { id: 2, question: 'Где это?' },
+//   { id: 3, question: 'Как это?' },
+// ])
 
 const isPortrait = ref(true) // Флаг для текущей ориентации
 
@@ -79,6 +90,9 @@ const handleResize = () => {
 }
 
 onMounted(() => {
+  const categoryId = route.params.id // Получаем id из URL
+  categoriesStore.fetchQuestions(categoryId)
+
   // Проверяем начальное состояние
   checkOrientation()
 

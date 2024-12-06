@@ -11,18 +11,15 @@
     </div>
     <div v-if="videoEnded" class="categories">
       <h2>{{ $t('categories') }}</h2>
-
-      <pre>{{ telegramData }}</pre>
-      <pre>{{ themeParams }}</pre>
-      <pre>{{ telegram_id }}</pre>
+      <!-- <pre>{{ categoriesStore }}</pre> -->
       <ul>
-        <li v-for="(item, index) in 7" :key="index">
+        <li v-for="(item, index) in categoriesStore.categories" :key="index">
           <router-link
             class="item"
-            :to="{ name: 'Category', params: { id: 1 } }"
+            :to="{ name: 'Category', params: { id: item.id } }"
           >
-            <img src="@/assets/img/image.png" alt="" />
-            <p>Sport trophies</p>
+            <img :src="'http://192.168.31.118:5555/' + item.image" alt="" />
+            <p>{{ item.name }}</p>
           </router-link>
         </li>
       </ul>
@@ -31,12 +28,16 @@
 </template>
 
 <script setup>
+import { useCategoriesStore } from '@/stores/categories'
 import { ref, onMounted } from 'vue'
+
+const categoriesStore = useCategoriesStore()
 
 // Создаем реактивное состояние для отслеживания, завершилось ли видео
 const videoEnded = ref(false)
 
 onMounted(() => {
+  categoriesStore.fetchCategories()
   const isVideoWatched = sessionStorage.getItem('videoWatched') === 'true'
   if (isVideoWatched) {
     videoEnded.value = true
@@ -51,6 +52,4 @@ const handleVideoEnd = () => {
 
 const telegram = window.Telegram.WebApp
 const telegramData = telegram.initDataUnsafe
-const themeParams = telegram.themeParams
-const telegram_id = telegram.initDataUnsafe?.user?.id
 </script>

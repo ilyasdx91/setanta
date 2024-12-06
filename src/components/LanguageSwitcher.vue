@@ -39,6 +39,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
@@ -51,11 +52,20 @@ const languages = [
 ]
 
 const setLanguage = lang => {
-  locale.value = lang
-  gameSettings.setLanguage(lang) // Сохраняем в глобальные настройки
+  locale.value = lang // Устанавливаем язык для i18n
+  localStorage.setItem('locale', lang) // Сохраняем выбранный язык в localStorage
+  gameSettings.setLanguage(lang) // Сохраняем в глобальные настройки, если это нужно
 }
 
 const currentLocale = locale
+
+// При загрузке компонента устанавливаем язык из localStorage
+onMounted(() => {
+  const savedLocale = localStorage.getItem('locale')
+  if (savedLocale) {
+    locale.value = savedLocale // Устанавливаем сохраненный язык
+  }
+})
 </script>
 
 <style scoped lang="scss">

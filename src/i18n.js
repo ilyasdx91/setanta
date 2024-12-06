@@ -39,9 +39,11 @@ const messages = {
   },
 }
 
-const i18n = createI18n({
-  locale: 'en', // Язык по умолчанию
-  fallbackLocale: 'en', // Резервный язык
+// Получаем сохраненный язык из localStorage или устанавливаем 'en' по умолчанию
+const savedLocale = localStorage.getItem('locale') || 'en'
+
+export const i18n = createI18n({
+  locale: savedLocale,
   messages,
 })
 

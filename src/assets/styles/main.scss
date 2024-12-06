@@ -87,6 +87,7 @@ body {
       width: 100%;
       min-height: 175px;
       .item {
+        display: block;
         position: relative;
         &::after {
           content: '';
