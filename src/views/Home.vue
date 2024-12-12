@@ -11,14 +11,13 @@
     </div>
     <div v-if="videoEnded" class="categories">
       <h2>{{ $t('categories') }}</h2>
-      <!-- <pre>{{ categoriesStore }}</pre> -->
       <ul>
         <li v-for="(item, index) in categoriesStore.categories" :key="index">
           <router-link
             class="item"
             :to="{ name: 'Category', params: { id: item.id } }"
           >
-            <img :src="'http://192.168.31.118:5555/' + item.image" alt="" />
+            <img :src="constants.BaseUrl + item.image" alt="" />
             <p>{{ item.name }}</p>
           </router-link>
         </li>
@@ -28,6 +27,7 @@
 </template>
 
 <script setup>
+import constants from '../constants.js'
 import { useCategoriesStore } from '@/stores/categories'
 import { ref, onMounted } from 'vue'
 

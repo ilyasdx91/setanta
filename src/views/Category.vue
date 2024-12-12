@@ -2,7 +2,7 @@
   <category-header></category-header>
 
   <div class="category">
-    <img src="@/assets/img/image-category.png" alt="" />
+    <img :src="constants.BaseUrl + categoriesStore.category.image" alt="" />
     <div class="inner">
       <!-- <pre>{{ accelerometer }}</pre> -->
       <!-- <pre>IsStarted: {{ accelerometer.isStarted }}</pre> -->
@@ -10,10 +10,8 @@
       <pre>Beta (X-axis tilt): {{ orientation.beta }}</pre>
       <pre>Gamma (Y-axis tilt): {{ orientation.gamma }}</pre> -->
 
-      <h1>Sport trophies</h1>
-      <p>
-        Describe sport trophies. Just make sure your friends guess what trophy
-        you are showing
+      <h1>{{ categoriesStore.category.name }}</h1>
+      <p v-html="categoriesStore.category.description">
       </p>
       <router-link :to="{ name: 'Game' }" class="btn btn-yellow">
         {{ $t('start') }}
@@ -23,15 +21,26 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, onUnmounted, ref } from 'vue'
+import constants from '../constants.js'
+import { useRoute } from 'vue-router'
+import { onMounted } from 'vue'
+//import { reactive, onMounted, onUnmounted, ref } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
+import { useCategoriesStore } from '@/stores/categories.js'
+
+const route = useRoute()
+const categoriesStore = useCategoriesStore()
+
+onMounted(async () => {
+  await categoriesStore.fetchCategory(route.params.id)
+})
 
 // Реактивные данные для ориентации устройства
-const orientation = reactive({
+/*const orientation = reactive({
   alpha: 0, // Вращение вокруг оси Z
   beta: 0, // Наклон вперед/назад (ось X)
   gamma: 0, // Наклон влево/вправо (ось Y)
-})
+})*/
 
 // Переменная для хранения ID анимации
 //let animationFrameId = null

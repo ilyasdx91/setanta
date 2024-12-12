@@ -1,9 +1,9 @@
 <template>
   <div class="container">
     <!-- v-if="currentQuestion" -->
-    <div v-if="currentQuestion" class="question-wrap" @click="handleClick">
+    <div v-if="_currentProcess!=='gameEnded'" class="question-wrap">
       <div class="question-head">
-        <router-link :to="{ name: 'Category', params: { id: 1 } }" class="btn">
+        <router-link :to="{ name: 'Category', params: { id: props.categoryId } }" class="btn">
           <i>
             <svg
               width="10"
@@ -22,7 +22,6 @@
           </i>
           {{ $t('back') }}
         </router-link>
-
         <div class="right">
           <div class="cards">
             <i>
@@ -61,12 +60,11 @@
           <div class="timer">{{ formattedTime }}</div>
         </div>
       </div>
-
       <div class="question" :key="currentIndex">
         <p v-if="incorrectPosition" class="notice">
-          Верните устройство в исходное положение, чтобы продолжить.
+          {{ $t('return_correct_orientation') }}
         </p>
-        <div v-else>
+        <div v-if="currentQuestion && showQuestionParagraph && !incorrectPosition">
           <div v-if="answerStatus === 'correct'" class="answer-status">
             <span class="checkmark">
               <svg
@@ -105,29 +103,25 @@
               </svg>
             </span>
           </div>
-
           <p :style="{ color: currentAnswerColor }">
             {{ currentQuestion?.question }}
           </p>
         </div>
       </div>
-
-      <!-- <pre>{{ currentIndex }}</pre>      <pre> {{ questionProgress }}</pre> -->
-
       <div class="question-footer">
         <!-- progress-bar -->
         <div class="progress-bar">
           <span :style="{ width: questionProgressBar }"></span>
         </div>
         <!-- <pre>{{ questionProgressBar }}</pre> -->
-        <router-link :to="{ name: 'Category', params: { id: 1 } }" class="btn">
+        <router-link :to="{ name: 'Category', params: { id: props.categoryId } }" class="btn">
           {{ $t('finish') }}
         </router-link>
       </div>
     </div>
 
-    <div v-else class="end-message">
-      <router-link :to="{ name: 'Category', params: { id: 1 } }" class="btn">
+    <div v-if="_currentProcess==='gameEnded'" class="end-message">
+      <router-link :to="{ name: 'Category', params: { id: props.categoryId } }" class="btn">
         <i>
           <svg
             width="10"
@@ -147,13 +141,13 @@
       </router-link>
       <div class="msg">
         <i>🥳</i>
-        <h6>You got {{ correctQuestions }} cards!</h6>
-        <p>out of {{ totalQuestions }} cards</p>
+        <h6>{{ $t('you_got_cards', { cards: correctAnswers }) }}</h6>
+        <p>{{ $t('out_of_cards', { cards: totalQuestions }) }}</p>
       </div>
       <router-link
-        :to="{ name: 'Category', params: { id: 1 } }"
+        :to="{ name: 'Category', params: { id: props.categoryId } }"
         class="btn btn-yellow-transparent"
-        >Play this deck again
+      >{{ $t('play_this_deck_again') }}
       </router-link>
     </div>
     <!-- <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
@@ -163,14 +157,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, onActivated, computed } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 //==========================
 const gameSettings = useGameSettingsStore()
 
 // Таймер отсчета
-const timeLeft = ref(gameSettings.gameTime)
+let timeLeft = ref(gameSettings.gameTime)
 const timerInterval = ref(null)
 
 // Форматирование времени для отображения
@@ -198,14 +192,19 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true,
+    required: true
   },
+  categoryId: {
+    type: String,
+    required: true
+  }
 })
 
 const currentQuestion = ref(null)
 const currentAnswerColor = ref('#FFD106')
 const answerStatus = ref('') // 'correct' | 'incorrect' | ''
 const currentIndex = ref(0)
+const showQuestionParagraph = ref(false)
 
 const correctAnswers = ref(0)
 const totalQuestions = ref(props.questions.length) // Инициализируем здесь
@@ -216,8 +215,39 @@ const questionProgress = computed(() => {
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
 const questionProgressBar = computed(
-  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%', // `${currentIndex.value + 1}/${props.questions.length}`,
+  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%' // `${currentIndex.value + 1}/${props.questions.length}`,
 )
+
+onMounted(() => {
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation) {
+    // Запуск отслеживания ориентации через API Telegram WebApp
+    deviceOrientation.start({ refresh_rate: 500 }, () => {
+      updateOrientation()
+    }) // Правильный способ запустить отслеживание
+    //updateOrientation() // Начинаем обновление данных в реальном времени
+  } else {
+    console.error('DeviceOrientation не доступен.')
+  }
+})
+
+onActivated(() => {
+  currentIndex.value = 0
+  timeLeft.value = gameSettings.gameTime
+})
+
+onBeforeUnmount(() => {
+  clearInterval(timerInterval.value)
+})
+
+const updateOrientation = () => {
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation && deviceOrientation.gamma !== null) {
+    gamma.value = deviceOrientation.gamma || 0
+  }
+  // Запускаем следующий кадр обновления
+  requestAnimationFrame(updateOrientation)
+}
 
 const showNextQuestion = () => {
   // Сброс состояния ответа перед показом следующего вопроса
@@ -231,86 +261,15 @@ const showNextQuestion = () => {
   }
 }
 
-// const handleClick = event => {
-//   if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
-//   const position =
-//     event.clientY < window.innerHeight / 2 ? 'correct' : 'incorrect'
-//   if (position === 'correct') {
-//     answerStatus.value = 'correct'
-//     currentAnswerColor.value = '#4CD964'
-//   } else {
-//     answerStatus.value = 'incorrect'
-//     currentAnswerColor.value = '#FC5F55'
-//   }
-
-//   setTimeout(() => {
-//     if (currentIndex.value < props.questions.length - 1) {
-//       currentIndex.value++ // Индекс увеличивается
-//       showNextQuestion() // Показать следующий вопрос
-//     } else {
-//       currentQuestion.value = null // Завершаем викторину
-//       emit('gameEnded') // Сообщаем родителю, что игра закончена
-//     }
-//   }, 1000)
-// }
-
 //===================================================
 
 let gamma = ref(0)
 let position = ref(0) // 0 - undefined, 1 - default, 2 - up (incorrect), -1 - down (correct)
-let incorrectPosition = ref(false)
-let correctQuestions = ref(0)
-// Обновление данных ориентации через requestAnimationFrame
-const updateOrientation = () => {
-  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+let incorrectPosition = ref(true)
 
-  if (deviceOrientation && deviceOrientation.gamma !== null) {
-    gamma.value = deviceOrientation.gamma || 0
-
-    // Запускаем следующий кадр обновления
-    requestAnimationFrame(updateOrientation)
-  } else {
-    // alert(deviceOrientation)
-    // alert(deviceOrientation.gamma)
-  }
-}
-// Переменная для хранения ID анимации
-//requestAnimationFrame(updateOrientation)
 const zero = 1.5
 
-//let startingPosition = true
-let answeredCurrentQuestion = false
-
-const handleTilt = gamma => {
-  //if (!currentQuestion.value) return // Игнорируем клики, если нет текущего вопроса
-  //let answer = ''
-
-  if (gamma > zero + 0.3) {
-    answerStatus.value = 'incorrect'
-    currentAnswerColor.value = '#FC5F55'
-  }
-  if (gamma < zero - 0.3) {
-    answerStatus.value = 'correct'
-    currentAnswerColor.value = '#4CD964'
-    if (currentQuestion.value !== null) {
-      correctQuestions.value++
-    }
-  }
-
-  //if (Math.abs(gamma.value - zero) <= 0.5) {
-  /*setTimeout(() => {
-      if (currentIndex.value < props.questions.length - 1) {
-        currentIndex.value++ // Индекс увеличивается
-        showNextQuestion() // Показать следующий вопрос
-      } else {
-        currentQuestion.value = null // Завершаем викторину
-        emit('gameEnded') // Сообщаем родителю, что игра закончена
-      }
-    }, 1000)*/
-  // }
-}
-
-let _timer = null
+let _currentProcess = 'startGame'
 
 watch(gamma, newGamma => {
   const _gamma = Math.abs(newGamma)
@@ -318,52 +277,73 @@ watch(gamma, newGamma => {
   const isTiltedUp = _gamma > zero + 0.6
   const isCentered = _gamma > zero - 0.3 && _gamma < zero + 0.3
 
-  // Устанавливаем неправильное положение, если викторина не активна
-  if (!isQuizActive.value) {
-    incorrectPosition.value = true
-  }
-
   if (isTiltedDown) {
     position.value = -1 // Наклон вниз (пропустить)
   } else if (isTiltedUp) {
     position.value = 2 // Наклон вверх (правильно)
   } else if (isCentered) {
     position.value = 1 // В центре
-    incorrectPosition.value = false
+  } else {
+    position.value = 0 // undefined
+  }
 
-    if (_timer !== null) {
-      clearInterval(_timer)
+  if (_currentProcess === 'startGame') {
+    if (isCentered) {
+      incorrectPosition.value = false
+      if (!isQuizActive.value) {
+        startQuiz()
+        _currentProcess = 'gameInProgress'
+        showQuestionParagraph.value = true
+      }
+    } else {
+      incorrectPosition.value = true
+      showQuestionParagraph.value = false
     }
+  }
 
-    if (!isQuizActive.value) {
-      startQuiz()
-    }
-
-    if (answeredCurrentQuestion) {
-      answeredCurrentQuestion = false
+  if (_currentProcess === 'nextQuestion') {
+    if (isCentered) {
+      incorrectPosition.value = false
       setTimeout(() => {
         if (currentIndex.value < props.questions.length - 1) {
           currentIndex.value++ // Индекс увеличивается
           showNextQuestion() // Показать следующий вопрос
+          _currentProcess = 'gameInProgress'
+          showQuestionParagraph.value = true
         } else {
+          _currentProcess = 'gameEnded'
           currentQuestion.value = null // Завершаем викторину
           emit('gameEnded') // Сообщаем родителю, что игра закончена
         }
-      }, 1000)
+      }, 500)
+    } else {
+      incorrectPosition.value = true
     }
-  } else {
-    position.value = 0 // Неопределенное положение
   }
 
-  // Обработка наклона
-  if (isTiltedDown || isTiltedUp) {
-    handleTilt(_gamma)
-    answeredCurrentQuestion = true
-    _timer = setTimeout(() => {
-      if (position.value !== 1) {
-        incorrectPosition.value = true
+  if (_currentProcess === 'gameInProgress') {
+    if (isTiltedDown) {
+      // incorrect
+      answerStatus.value = 'incorrect'
+      currentAnswerColor.value = '#FC5F55'
+      setTimeout(() => {
+        _currentProcess = 'nextQuestion'
+        showQuestionParagraph.value = false
+        updateOrientation()
+      }, 1000)
+    } else if (isTiltedUp) {
+      // correct
+      answerStatus.value = 'correct'
+      currentAnswerColor.value = '#4CD964'
+      if (currentQuestion.value !== null) {
+        correctAnswers.value++
       }
-    }, 100)
+      setTimeout(() => {
+        _currentProcess = 'nextQuestion'
+        showQuestionParagraph.value = false
+        updateOrientation()
+      }, 1000)
+    }
   }
 })
 //=====================================================
@@ -377,25 +357,6 @@ const startQuiz = () => {
   startTimer()
 }
 
-onMounted(() => {
-  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
-  if (deviceOrientation) {
-    // Запуск отслеживания ориентации через API Telegram WebApp
-    deviceOrientation.start({ refresh_rate: 500 }, () => {
-      updateOrientation()
-    }) // Правильный способ запустить отслеживание
-    //updateOrientation() // Начинаем обновление данных в реальном времени
-  } else {
-    console.error('DeviceOrientation не доступен.')
-  }
-
-  //isQuizActive.value = true // Установить isQuizActive в true здесь
-  //startQuiz()
-})
-
-onBeforeUnmount(() => {
-  clearInterval(timerInterval.value)
-})
 
 //=====================================================
 </script>
@@ -489,12 +450,14 @@ onBeforeUnmount(() => {
 
   .question-footer {
     padding: 20px;
+
     .progress-bar {
       width: 100%;
       height: 10px;
       background: rgba($color: #ffd106, $alpha: 0.2);
       position: relative;
       margin-bottom: 20px;
+
       span {
         position: absolute;
         top: 0;
