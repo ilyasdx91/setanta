@@ -41,12 +41,16 @@ export const useCategoriesStore = defineStore('categories', {
       this.error = null
       try {
         const response = await axios.get(`categories/${categoryId}`)
-        this.category = {
-          id: response.data.data.category_id,
-          name: response.data.data.title,
-          description: response.data.data.description,
-          image: response.data.data.photo,
-          order: response.data.data.order
+        if (response.data.success) {
+          this.category = {
+            id: response.data.data.category_id,
+            name: response.data.data.title,
+            description: response.data.data.description,
+            image: response.data.data.photo,
+            order: response.data.data.order
+          }
+        } else {
+          this.error = 'Ошибка на сервере: данные не получены.'
         }
       } catch (err) {
         this.error = 'Ошибка при подключении к серверу'
@@ -60,16 +64,16 @@ export const useCategoriesStore = defineStore('categories', {
         const response = await axios.get(
           `/get-questions-by-category-id?category_id=${categoryId}`
         )
-        this.questions = response.data.data.map(item => ({
-          id: item.question_id,
-          question: item.title,
-          categoryId: item.category_id
-        }))
-        /*if (response.data.success) {
 
+        if (response.data.success) {
+          this.questions = response.data.data.map(item => ({
+            id: item.question_id,
+            question: item.title,
+            categoryId: item.category_id
+          }))
         } else {
           this.error = 'Failed to load questions.'
-        }*/
+        }
       } catch (error) {
         this.error = error.message
       } finally {
