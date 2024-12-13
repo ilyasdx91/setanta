@@ -64,13 +64,8 @@
         </div>
       </div>
       <div class="question" :key="currentIndex">
-        <p
-          v-if="incorrectPosition"
-          class="notice"
-        >
+        <p v-if="incorrectPosition" class="notice">
           {{ $t('return_correct_orientation') }}
-
-
         </p>
         <div
           v-if="currentQuestion && showQuestionParagraph && !incorrectPosition"
@@ -114,12 +109,14 @@
             </span>
           </div>
           <div ref="textRef">
-            <p :style="{ color: currentAnswerColor, fontSize: fontSize + 'px' }"
-               style="  white-space: nowrap; overflow: hidden;">
-              {{ currentQuestion?.question }} {{ containerWidth }} {{textRefWidth}}
+            <p
+              :style="{ color: currentAnswerColor, fontSize: fontSize + 'px' }"
+              style="white-space: nowrap; overflow: hidden"
+            >
+              {{ currentQuestion?.question }}
+              <!--  {{ containerWidth }} {{textRefWidth}} -->
             </p>
           </div>
-
         </div>
       </div>
       <div class="question-footer">
@@ -167,7 +164,7 @@
       <router-link
         :to="{ name: 'Category', params: { id: props.categoryId } }"
         class="btn btn-yellow-transparent"
-      >{{ $t('play_this_deck_again') }}
+        >{{ $t('play_this_deck_again') }}
       </router-link>
     </div>
     <!-- <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
@@ -183,7 +180,7 @@ import {
   onMounted,
   onBeforeUnmount,
   onActivated,
-  computed
+  computed,
 } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
@@ -220,12 +217,12 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true
+    required: true,
   },
   categoryId: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const currentQuestion = ref(null)
@@ -243,11 +240,10 @@ const questionProgress = computed(() => {
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
 const questionProgressBar = computed(
-  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%' // `${currentIndex.value + 1}/${props.questions.length}`,
+  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%', // `${currentIndex.value + 1}/${props.questions.length}`,
 )
 
 onMounted(() => {
-  adjustFontSize()
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
     // Запуск отслеживания ориентации через API Telegram WebApp
@@ -261,7 +257,6 @@ onMounted(() => {
 })
 
 onActivated(() => {
-  adjustFontSize()
   currentIndex.value = 0
   timeLeft.value = gameSettings.gameTime
 })
@@ -389,30 +384,29 @@ const startQuiz = () => {
 
 //=====================================================
 
-const fontSize = ref(60) // Начальный размер шрифта
+const fontSize = ref(40) // Начальный размер шрифта
 const textRef = ref(null)
 
-const adjustFontSize = () => {
-  //const containerWidth = textRef?.value?.parentElement?.offsetWidth
-  //const textWidth = textRef.value?.scrollWidth
-  const containerWidth = window.width() - 64
-  const textWidth = textRef.value?.width
-  while (textWidth > containerWidth && fontSize.value > 30) {
-    fontSize.value--
-  }
-}
+// const adjustFontSize = () => {
+//   //const containerWidth = textRef?.value?.parentElement?.offsetWidth
+//   //const textWidth = textRef.value?.scrollWidth
+//   const containerWidth = window.width() - 64
+//   const textWidth = textRef.value?.width
+//   while (textWidth > containerWidth && fontSize.value > 30) {
+//     fontSize.value--
+//   }
+// }
 
-watch(currentQuestion.value?.question, () => {
-  adjustFontSize()
-})
+// watch(currentQuestion.value?.question, () => {
+//   adjustFontSize()
+// })
 
-const textRefWidth = computed(() => {
-  return textRef.value?.scrollWidth
-})
-const containerWidth = computed(() => {
-  return window.width() - 64
-})
-
+// const textRefWidth = computed(() => {
+//   return textRef.value?.scrollWidth
+// })
+// const containerWidth = computed(() => {
+//   return window.width() - 64
+// })
 </script>
 <style scoped lang="scss">
 .quiz-container {
