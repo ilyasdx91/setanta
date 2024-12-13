@@ -182,6 +182,7 @@ const startTimer = () => {
     } else {
       clearInterval(timerInterval.value)
       // Завершаем игру, когда время истекло
+      _currentProcess = 'gameEnded'
       currentQuestion.value = null // Можно здесь реализовать завершение игры
       emit('gameEnded') // Сообщаем об окончании игры
     }
@@ -304,18 +305,16 @@ watch(gamma, newGamma => {
   if (_currentProcess === 'nextQuestion') {
     if (isCentered) {
       incorrectPosition.value = false
-      setTimeout(() => {
-        if (currentIndex.value < props.questions.length - 1) {
-          currentIndex.value++ // Индекс увеличивается
-          showNextQuestion() // Показать следующий вопрос
-          _currentProcess = 'gameInProgress'
-          showQuestionParagraph.value = true
-        } else {
-          _currentProcess = 'gameEnded'
-          currentQuestion.value = null // Завершаем викторину
-          emit('gameEnded') // Сообщаем родителю, что игра закончена
-        }
-      }, 500)
+      if (currentIndex.value < props.questions.length - 1) {
+        currentIndex.value++ // Индекс увеличивается
+        showNextQuestion() // Показать следующий вопрос
+        _currentProcess = 'gameInProgress'
+        showQuestionParagraph.value = true
+      } else {
+        _currentProcess = 'gameEnded'
+        currentQuestion.value = null // Завершаем викторину
+        emit('gameEnded') // Сообщаем родителю, что игра закончена
+      }
     } else {
       incorrectPosition.value = true
     }
@@ -326,6 +325,7 @@ watch(gamma, newGamma => {
       // incorrect
       answerStatus.value = 'incorrect'
       currentAnswerColor.value = '#FC5F55'
+      _currentProcess = 'gameInPause'
       setTimeout(() => {
         _currentProcess = 'nextQuestion'
         showQuestionParagraph.value = false
@@ -338,6 +338,7 @@ watch(gamma, newGamma => {
       if (currentQuestion.value !== null) {
         correctAnswers.value++
       }
+      _currentProcess = 'gameInPause'
       setTimeout(() => {
         _currentProcess = 'nextQuestion'
         showQuestionParagraph.value = false

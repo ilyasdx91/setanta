@@ -3,8 +3,8 @@
     <h6>
       {{ $t('change_language') }}
 
-      <img v-if="locale === 'en'" src="/flags/us.svg" :alt="us" />
-      <img v-else src="/flags/ua.svg" :alt="ua" />
+      <img v-if="locale === 'en'" :src="constants.BaseUrl +'/flags/us.svg'" :alt="us" />
+      <img v-else :src="constants.BaseUrl +'/flags/ua.svg'" :alt="ua" />
     </h6>
     <hr />
     <div class="language-options">
@@ -42,6 +42,7 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGameSettingsStore } from '@/stores/gameSettings'
+import constants from '../constants.js'
 
 const { locale } = useI18n()
 const gameSettings = useGameSettingsStore()
