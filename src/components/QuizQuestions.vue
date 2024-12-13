@@ -67,9 +67,10 @@
         <p
           v-if="incorrectPosition"
           class="notice"
-          :style="{ fontSize: fontSize + 'px' }"
         >
           {{ $t('return_correct_orientation') }}
+
+         
         </p>
         <div
           v-if="currentQuestion && showQuestionParagraph && !incorrectPosition"
@@ -112,12 +113,12 @@
               </svg>
             </span>
           </div>
-          <p
-            :style="{ color: currentAnswerColor, fontSize: fontSize + 'px' }"
-            ref="textRef"
-          >
-            {{ currentQuestion?.question }}
+          <div>
+            <p  ref="textRef" :style="{ color: currentAnswerColor, fontSize: fontSize + 'px' }" style="  white-space: nowrap; overflow: hidden;">
+            {{ currentQuestion?.question }}  <pre>{{ fontSizes }}</pre>
           </p>
+          </div>
+         
         </div>
       </div>
       <div class="question-footer">
@@ -392,8 +393,8 @@ const fontSize = ref(24) // Начальный размер шрифта
 const textRef = ref(null)
 
 const adjustFontSize = () => {
-  const containerWidth = textRef.value.parentElement.offsetWidth
-  const textWidth = textRef.value.scrollWidth
+  const containerWidth = textRef?.value?.parentElement?.offsetWidth
+  const textWidth = textRef.value?.scrollWidth
 
   while (textWidth > containerWidth && fontSize.value > 10) {
     fontSize.value--
