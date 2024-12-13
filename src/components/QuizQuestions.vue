@@ -1,9 +1,12 @@
 <template>
   <div class="container">
     <!-- v-if="currentQuestion" -->
-    <div v-if="_currentProcess!=='gameEnded'" class="question-wrap">
+    <div v-if="_currentProcess !== 'gameEnded'" class="question-wrap">
       <div class="question-head">
-        <router-link :to="{ name: 'Category', params: { id: props.categoryId } }" class="btn">
+        <router-link
+          :to="{ name: 'Category', params: { id: props.categoryId } }"
+          class="btn"
+        >
           <i>
             <svg
               width="10"
@@ -61,10 +64,16 @@
         </div>
       </div>
       <div class="question" :key="currentIndex">
-        <p v-if="incorrectPosition" class="notice">
+        <p
+          v-if="incorrectPosition"
+          class="notice"
+          :style="{ fontSize: fontSize + 'px' }"
+        >
           {{ $t('return_correct_orientation') }}
         </p>
-        <div v-if="currentQuestion && showQuestionParagraph && !incorrectPosition">
+        <div
+          v-if="currentQuestion && showQuestionParagraph && !incorrectPosition"
+        >
           <div v-if="answerStatus === 'correct'" class="answer-status">
             <span class="checkmark">
               <svg
@@ -103,7 +112,10 @@
               </svg>
             </span>
           </div>
-          <p :style="{ color: currentAnswerColor }">
+          <p
+            :style="{ color: currentAnswerColor, fontSize: fontSize + 'px' }"
+            ref="textRef"
+          >
             {{ currentQuestion?.question }}
           </p>
         </div>
@@ -114,14 +126,20 @@
           <span :style="{ width: questionProgressBar }"></span>
         </div>
         <!-- <pre>{{ questionProgressBar }}</pre> -->
-        <router-link :to="{ name: 'Category', params: { id: props.categoryId } }" class="btn">
+        <router-link
+          :to="{ name: 'Category', params: { id: props.categoryId } }"
+          class="btn"
+        >
           {{ $t('finish') }}
         </router-link>
       </div>
     </div>
 
-    <div v-if="_currentProcess==='gameEnded'" class="end-message">
-      <router-link :to="{ name: 'Category', params: { id: props.categoryId } }" class="btn">
+    <div v-if="_currentProcess === 'gameEnded'" class="end-message">
+      <router-link
+        :to="{ name: 'Category', params: { id: props.categoryId } }"
+        class="btn"
+      >
         <i>
           <svg
             width="10"
@@ -147,7 +165,7 @@
       <router-link
         :to="{ name: 'Category', params: { id: props.categoryId } }"
         class="btn btn-yellow-transparent"
-      >{{ $t('play_this_deck_again') }}
+        >{{ $t('play_this_deck_again') }}
       </router-link>
     </div>
     <!-- <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
@@ -157,7 +175,14 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, onActivated, computed } from 'vue'
+import {
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  onActivated,
+  computed,
+} from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
 //==========================
@@ -193,12 +218,12 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true
+    required: true,
   },
   categoryId: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const currentQuestion = ref(null)
@@ -216,10 +241,11 @@ const questionProgress = computed(() => {
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
 const questionProgressBar = computed(
-  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%' // `${currentIndex.value + 1}/${props.questions.length}`,
+  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%', // `${currentIndex.value + 1}/${props.questions.length}`,
 )
 
 onMounted(() => {
+  adjustFontSize()
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
     // Запуск отслеживания ориентации через API Telegram WebApp
@@ -233,6 +259,7 @@ onMounted(() => {
 })
 
 onActivated(() => {
+  adjustFontSize()
   currentIndex.value = 0
   timeLeft.value = gameSettings.gameTime
 })
@@ -354,12 +381,28 @@ const startQuiz = () => {
   currentIndex.value = 0
   correctAnswers.value = 0
   showNextQuestion()
+  adjustFontSize()
   timeLeft.value = gameSettings.gameTime
   startTimer()
 }
 
-
 //=====================================================
+
+const fontSize = ref(24) // Начальный размер шрифта
+const textRef = ref(null)
+
+const adjustFontSize = () => {
+  const containerWidth = textRef.value.parentElement.offsetWidth
+  const textWidth = textRef.value.scrollWidth
+
+  while (textWidth > containerWidth && fontSize.value > 10) {
+    fontSize.value--
+  }
+}
+
+watch(currentQuestion?.question, () => {
+  adjustFontSize()
+})
 </script>
 <style scoped lang="scss">
 .quiz-container {
