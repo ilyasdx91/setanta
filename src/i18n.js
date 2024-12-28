@@ -20,7 +20,8 @@ const messages = {
     finish: 'Finish',
     wrong_orientation:
       'Please rotate your device to landscape mode to start the game.',
-    return_correct_orientation: 'Reset the device to continue.',
+    return_correct_orientation:
+      'Place the phone in front of your forehead to start',
     play_this_deck_again: 'Play this deck again',
     you_got_cards: 'You got {cards} cards!',
     out_of_cards: 'out of {cards} cards',
@@ -44,8 +45,7 @@ const messages = {
     finish: 'Завершити',
     wrong_orientation:
       'Будь ласка, переверніть пристрій у альбомний режим, щоб розпочати гру.',
-    return_correct_orientation:
-      'Щоб продовжити, поверніть пристрій у вихідне положення.',
+    return_correct_orientation: 'Помістіть телефон перед чолом, щоб почати',
     play_this_deck_again: 'Зіграйте цю колоду ще раз',
     you_got_cards: 'У вас {cards} карток!',
     out_of_cards: 'з {cards} карт',
