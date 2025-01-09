@@ -11,11 +11,10 @@ const accountStore = useAccountStore()
 const telegram = window.Telegram.WebApp
 
 onMounted(async () => {
-  await accountStore.initByTelegram(telegram.initDataUnsafe)
-  await accountStore.setSafeArea(telegram.ContentSafeAreaInset)
   try {
-    //telegram.showAlert(accountStore.telegramData.user.first_name);
     wakeLock = await navigator.wakeLock.request('screen')
+    await accountStore.initByTelegram(telegram.initDataUnsafe)
+    await accountStore.setSafeArea(telegram.ContentSafeAreaInset)
   } catch (err) {
     console.log(err)
   }
