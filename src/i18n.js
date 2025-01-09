@@ -26,7 +26,7 @@ const messages = {
     you_got_cards: 'You got {cards} cards!',
     out_of_cards: 'out of {cards} cards',
   },
-  uk: {
+  ua: {
     categories: 'Категорії',
     settings: 'Налаштування',
     round_duration: 'Тривалість раунду',

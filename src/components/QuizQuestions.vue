@@ -187,6 +187,8 @@ import { useGameSettingsStore } from '@/stores/gameSettings'
 //==========================
 const gameSettings = useGameSettingsStore()
 
+//const emit = defineEmits(['gameEnded'])
+
 // Таймер отсчета
 let timeLeft = ref(gameSettings.gameTime)
 const timerInterval = ref(null)
@@ -208,7 +210,7 @@ const startTimer = () => {
       // Завершаем игру, когда время истекло
       _currentProcess = 'gameEnded'
       currentQuestion.value = null // Можно здесь реализовать завершение игры
-      emit('gameEnded') // Сообщаем об окончании игры
+      //emit('gameEnded') // Сообщаем об окончании игры
     }
   }, 1000)
 }
@@ -337,7 +339,7 @@ watch(gamma, newGamma => {
       } else {
         _currentProcess = 'gameEnded'
         currentQuestion.value = null // Завершаем викторину
-        emit('gameEnded') // Сообщаем родителю, что игра закончена
+        //emit('gameEnded') // Сообщаем родителю, что игра закончена
       }
     } else {
       incorrectPosition.value = true

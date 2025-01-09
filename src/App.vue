@@ -13,10 +13,18 @@ const telegram = window.Telegram.WebApp
 onMounted(async () => {
   try {
     wakeLock = await navigator.wakeLock.request('screen')
-    await accountStore.initByTelegram(telegram.initDataUnsafe)
-    await accountStore.setSafeArea(telegram.ContentSafeAreaInset)
   } catch (err) {
     console.log(err)
+  }
+  try {
+    await accountStore.initByTelegram(telegram.initDataUnsafe)
+  } catch (e) {
+    console.log(e)
+  }
+  try {
+    await accountStore.setSafeArea(telegram.ContentSafeAreaInset)
+  } catch (e) {
+    console.log(e)
   }
 })
 onUnmounted(() => {

@@ -3,8 +3,8 @@
     <h6>
       {{ $t('change_language') }}
 
-      <img v-if="locale === 'en'" :src="constants.BaseUrl +'/flags/us.svg'" :alt="us" />
-      <img v-else :src="constants.BaseUrl +'/flags/ua.svg'" :alt="ua" />
+      <img v-if="locale === 'en'" :src="constants.BaseGameUrl +'/flags/us.svg'" :alt="us" />
+      <img v-else :src="constants.BaseGameUrl +'/flags/ua.svg'" :alt="ua" />
     </h6>
     <hr />
     <div class="language-options">
@@ -47,12 +47,17 @@ import constants from '../constants.js'
 const { locale } = useI18n()
 const gameSettings = useGameSettingsStore()
 
+const emit = defineEmits(['languageChanged'])
+
 const languages = [
-  { code: 'en', label: 'English (US)', flag: '/flags/us.svg' },
-  { code: 'uk', label: 'Українська', flag: '/flags/ua.svg' },
+  { code: 'en', label: 'English (US)', flag: `${constants.BaseGameUrl}/flags/us.svg` },
+  { code: 'ua', label: 'Українська', flag: `${constants.BaseGameUrl}/flags/ua.svg` }
 ]
 
 const setLanguage = lang => {
+  if (lang !== locale.value) {
+    emit('languageChanged', lang)
+  }
   locale.value = lang // Устанавливаем язык для i18n
   localStorage.setItem('locale', lang) // Сохраняем выбранный язык в localStorage
   gameSettings.setLanguage(lang) // Сохраняем в глобальные настройки, если это нужно
@@ -73,11 +78,13 @@ onMounted(() => {
 .language-switcher {
   color: white;
 }
+
 .language-options {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+
 .language-button {
   display: flex;
   align-items: center;
@@ -89,11 +96,13 @@ onMounted(() => {
   cursor: pointer;
   transition: 0.3s;
   position: relative;
+
   .flag {
     width: 32px;
     height: 24px;
     margin-right: 16px;
   }
+
   .checkmark {
     position: absolute;
     top: 50%;

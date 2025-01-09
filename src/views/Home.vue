@@ -37,7 +37,9 @@ const categoriesStore = useCategoriesStore()
 const videoEnded = ref(false)
 
 onMounted(() => {
-  categoriesStore.fetchCategories()
+  if (categoriesStore.categories.length === 0) {
+    categoriesStore.fetchCategories()
+  }
   const isVideoWatched = sessionStorage.getItem('videoWatched') === 'true'
   if (isVideoWatched) {
     videoEnded.value = true
@@ -49,7 +51,4 @@ const handleVideoEnd = () => {
   videoEnded.value = true
   sessionStorage.setItem('videoWatched', 'true') // Сохраняем состояние в sessionStorage
 }
-
-const telegram = window.Telegram.WebApp
-const telegramData = telegram.initDataUnsafe
 </script>

@@ -56,7 +56,7 @@
         </button>
       </div>
 
-      <LanguageSwitcher />
+      <LanguageSwitcher @language-changed="onLanguageChanged" />
     </div>
   </div>
 </template>
@@ -64,8 +64,11 @@
 <script setup>
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
-import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import { computed } from 'vue'
+import { useCategoriesStore } from '@/stores/categories.js'
+
 const gameSettings = useGameSettingsStore()
+const categoriesStore = useCategoriesStore()
 
 // Форматируем время в минуты:секунды
 const formattedTime = computed(() => {
@@ -78,5 +81,10 @@ const decreaseTime = () => {
 }
 const increaseTime = () => {
   gameSettings.increaseTime()
+}
+const onLanguageChanged = (newLocale) => {
+  categoriesStore.clearCategories()
+  categoriesStore.fetchCategories()
+  console.log(newLocale)
 }
 </script>

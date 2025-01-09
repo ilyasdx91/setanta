@@ -14,9 +14,7 @@
         v-else
         :categoryId="categoriesStore.category.id"
         :questions="categoriesStore.questions"
-        @gameEnded="endGame"
       />
-<!--      <pre>{{ categoriesStore.questions }}</pre>-->
     </div>
   </div>
 </template>
@@ -33,12 +31,6 @@ const route = useRoute()
 
 const showQuiz = ref(false)
 
-// const questions = ref([
-//   { id: 1, question: 'Что это?' },
-//   { id: 2, question: 'Где это?' },
-//   { id: 3, question: 'Как это?' },
-// ])
-
 const isPortrait = ref(true) // Флаг для текущей ориентации
 
 // Показываем вопросы после завершения отсчета
@@ -47,15 +39,14 @@ const showQuestions = () => {
 }
 
 // Завершение игры: сброс ориентации
-const endGame = () => {
+/*const endGame = () => {
   showQuiz.value = false
   unlockOrientation() // Отменяем фиксацию ориентации
-}
+}*/
 
 // Проверяем ориентацию
 const checkOrientation = () => {
   isPortrait.value = window.innerWidth < window.innerHeight
-  //console.log(`Ориентация: ${isPortrait.value ? 'портретная' : 'альбомная'}`)
 }
 
 // Устанавливаем альбомную ориентацию через Telegram API
@@ -67,7 +58,7 @@ const lockLandscape = () => {
       deviceOrientation.start()
     }
     //console.log('Ориентация заблокирована на альбомный режим.')
-  } catch (error) {
+  } catch {
     //console.error('Не удалось заблокировать альбомный режим:', error)
   }
 }
@@ -77,7 +68,7 @@ const unlockOrientation = () => {
   try {
     window.Telegram?.WebApp?.unlockOrientation()
     //console.log('Ориентация разблокирована.')
-  } catch (error) {
+  } catch {
     //console.error('Не удалось разблокировать ориентацию:', error)
   }
 }

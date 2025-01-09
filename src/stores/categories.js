@@ -16,6 +16,18 @@ export const useCategoriesStore = defineStore('categories', {
     error: null
   }),
   actions: {
+    clearCategories() {
+      this.categories = []
+    },
+    clearCategory() {
+      this.category = {
+        id: null,
+        name: '',
+        description: '',
+        image: null,
+        order: 0
+      }
+    },
     async fetchCategories() {
       this.loading = true
       this.error = null
