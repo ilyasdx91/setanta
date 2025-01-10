@@ -3,10 +3,11 @@
     <Header />
     <div v-if="!videoEnded" class="welcome">
       <div class="video-background">
-        <video autoplay muted @ended="handleVideoEnd" id="myVideo">
-          <source src="@/assets/welcome.mp4" type="video/mp4" />
-          <source src="@/assets/welcome.mov" type="video/mov" />
-        </video>
+        <img src="@/assets/welcome.gif" alt="" />
+        <!--<video autoplay muted @ended="handleVideoEnd" id="myVideo">
+                  <source src="@/assets/welcome.mp4" type="video/mp4" />
+                  <source src="@/assets/welcome.mov" type="video/mov" />
+                </video>-->
       </div>
     </div>
     <div v-if="videoEnded" class="categories">
@@ -29,7 +30,7 @@
 <script setup>
 import constants from '../constants.js'
 import { useCategoriesStore } from '@/stores/categories'
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const categoriesStore = useCategoriesStore()
 
@@ -51,4 +52,6 @@ const handleVideoEnd = () => {
   videoEnded.value = true
   sessionStorage.setItem('videoWatched', 'true') // Сохраняем состояние в sessionStorage
 }
+
+setTimeout(handleVideoEnd(), 6000)
 </script>
