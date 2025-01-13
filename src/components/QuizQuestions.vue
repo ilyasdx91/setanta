@@ -5,7 +5,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
-  watch,
+  watch
 } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings' //==========================
 
@@ -43,12 +43,12 @@ const startTimer = () => {
 const props = defineProps({
   questions: {
     type: Array,
-    required: true,
+    required: true
   },
   categoryId: {
     type: String,
-    required: true,
-  },
+    required: true
+  }
 })
 const currentQuestion = ref(null)
 const currentAnswerColor = ref('#FFD106')
@@ -58,34 +58,39 @@ const showQuestionParagraph = ref(false)
 const correctAnswers = ref(0)
 const totalQuestions = ref(props.questions.length) // Инициализируем здесь
 const isQuizActive = ref(false) // Флаг для активности викторины
+let initialFontSize = 3
 
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
   return `${currentIndex.value + 1}/${props.questions.length}`
 })
 const questionProgressBar = computed(
-  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%', // `${currentIndex.value + 1}/${props.questions.length}`,
+  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%' // `${currentIndex.value + 1}/${props.questions.length}`,
 )
+
 onMounted(() => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
-    // Запуск отслеживания ориентации через API Telegram WebApp
-    // deviceOrientation.start({ refresh_rate: 500 }, (ars) => {
-    //   updateOrientation()
-    // }) // Правильный способ запустить отслеживание
-
     deviceOrientation.start({ refresh_rate: 500 })
     updateOrientation() // Начинаем обновление данных в реальном времени
-
-    //updateOrientation() // Начинаем обновление данных в реальном времени
   } else {
     console.error('DeviceOrientation не доступен.')
+  }
+  if (window.width > 720) {
+    initialFontSize = 4
+  } else {
+    initialFontSize = 3
   }
 })
 
 onActivated(() => {
   currentIndex.value = 0
   timeLeft.value = gameSettings.gameTime
+  if (window.width > 720) {
+    initialFontSize = 4
+  } else {
+    initialFontSize = 3
+  }
 })
 
 onBeforeUnmount(() => {
@@ -108,6 +113,7 @@ const showNextQuestion = () => {
 
   if (currentIndex.value < props.questions.length) {
     currentQuestion.value = props.questions[currentIndex.value]
+    adjustFontSize(currentQuestion.value?.question)
   } else {
     currentQuestion.value = null
   }
@@ -207,8 +213,23 @@ const startQuiz = () => {
 
 //=====================================================
 
-const fontSize = ref(40) // Начальный размер шрифта
+const fontSize = ref(2) // Начальный размер шрифта
 const textRef = ref(null)
+
+const adjustFontSize = (newQuestion) => {
+  console.log(newQuestion)
+  if (newQuestion) {
+    if (newQuestion.length > 60) {
+      fontSize.value = initialFontSize * 0.5
+    } else if (newQuestion.length > 45) {
+      fontSize.value = initialFontSize * 0.62
+    } else if (newQuestion.length > 25) {
+      fontSize.value = initialFontSize * 0.75
+    } else {
+      fontSize.value = initialFontSize
+    }
+  }
+}
 
 // const adjustFontSize = () => {
 //   //const containerWidth = textRef?.value?.parentElement?.offsetWidth
@@ -220,9 +241,15 @@ const textRef = ref(null)
 //   }
 // }
 
-// watch(currentQuestion.value?.question, () => {
-//   adjustFontSize()
-// })
+/*watch(currentQuestion.value?.question, (newQuestion) => {
+  if (newQuestion) {
+    if (newQuestion.length > 30) {
+      fontSize.value = 3
+    } else {
+      fontSize.value = 4
+    }
+  }
+})*/
 
 // const textRefWidth = computed(() => {
 //   return textRef.value?.scrollWidth
@@ -343,11 +370,9 @@ const textRef = ref(null)
           </div>
           <div ref="textRef">
             <p
-              :style="{ color: currentAnswerColor, fontSize: fontSize + 'px' }"
-              style="white-space: nowrap; overflow: hidden"
+              :style="{ color: currentAnswerColor, fontSize: fontSize+'rem'}"
             >
               {{ currentQuestion?.question }}
-              <!--  {{ containerWidth }} {{textRefWidth}} -->
             </p>
           </div>
         </div>
@@ -398,7 +423,7 @@ const textRef = ref(null)
         v-if="props.categoryId !== null"
         :to="{ name: 'Category', params: { id: props.categoryId } }"
         class="btn btn-yellow-transparent"
-        >{{ $t('play_this_deck_again') }}
+      >{{ $t('play_this_deck_again') }}
       </router-link>
     </div>
     <!-- <pre>Gamma (Y-axis tilt): {{ gamma }}</pre>
@@ -430,6 +455,7 @@ const textRef = ref(null)
     padding: 20px 0;
     font-size: 16px;
     font-weight: 700;
+    padding-top: 0;
 
     .btn {
       display: flex;
