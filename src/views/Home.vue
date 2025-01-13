@@ -3,10 +3,11 @@
     <Header />
     <div v-if="!videoEnded" class="welcome">
       <div class="video-background">
-        <video autoplay muted @ended="handleVideoEnd" id="myVideo">
-          <source src="@/assets/welcome.mp4" type="video/mp4" />
-          <source src="@/assets/welcome.mov" type="video/mov" />
-        </video>
+        <img src="@/assets/welcome.gif" alt="" style="display: inline-block;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);" />
+        <!--<video autoplay muted @ended="handleVideoEnd" id="myVideo">
+                  <source src="@/assets/welcome.mp4" type="video/mp4" />
+                  <source src="@/assets/welcome.mov" type="video/mov" />
+                </video>-->
       </div>
     </div>
     <div v-if="videoEnded" class="categories">
@@ -29,7 +30,7 @@
 <script setup>
 import constants from '../constants.js'
 import { useCategoriesStore } from '@/stores/categories'
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const categoriesStore = useCategoriesStore()
 
@@ -40,9 +41,10 @@ onMounted(() => {
   if (categoriesStore.categories.length === 0) {
     categoriesStore.fetchCategories()
   }
-  const isVideoWatched = sessionStorage.getItem('videoWatched') === 'true'
-  if (isVideoWatched) {
+  if (sessionStorage.getItem('videoWatched') === 'true') {
     videoEnded.value = true
+  } else {
+    setTimeout(handleVideoEnd, 6000)
   }
 })
 

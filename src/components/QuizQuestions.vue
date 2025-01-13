@@ -1,3 +1,236 @@
+<script setup>
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
+import { useGameSettingsStore } from '@/stores/gameSettings' //==========================
+
+//==========================
+const gameSettings = useGameSettingsStore()
+//const emit = defineEmits(['gameEnded'])
+
+// Таймер отсчета
+let timeLeft = ref(gameSettings.gameTime)
+const timerInterval = ref(null)
+
+// Форматирование времени для отображения
+const formattedTime = computed(() => {
+  const minutes = Math.floor(timeLeft.value / 60)
+  const seconds = timeLeft.value % 60
+  return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+})
+
+// Начало отсчета времени
+const startTimer = () => {
+  timerInterval.value = setInterval(() => {
+    if (timeLeft.value > 0) {
+      timeLeft.value--
+    } else {
+      clearInterval(timerInterval.value)
+      // Завершаем игру, когда время истекло
+      _currentProcess = 'gameEnded'
+      currentQuestion.value = null // Можно здесь реализовать завершение игры
+      //emit('gameEnded') // Сообщаем об окончании игры
+    }
+  }, 1000)
+}
+//==========================
+
+const props = defineProps({
+  questions: {
+    type: Array,
+    required: true,
+  },
+  categoryId: {
+    type: String,
+    required: true,
+  },
+})
+const currentQuestion = ref(null)
+const currentAnswerColor = ref('#FFD106')
+const answerStatus = ref('') // 'correct' | 'incorrect' | ''
+const currentIndex = ref(0)
+const showQuestionParagraph = ref(false)
+const correctAnswers = ref(0)
+const totalQuestions = ref(props.questions.length) // Инициализируем здесь
+const isQuizActive = ref(false) // Флаг для активности викторины
+
+// Подсчет текущего номера вопроса и общего количества
+const questionProgress = computed(() => {
+  return `${currentIndex.value + 1}/${props.questions.length}`
+})
+const questionProgressBar = computed(
+  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%', // `${currentIndex.value + 1}/${props.questions.length}`,
+)
+onMounted(() => {
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation) {
+    // Запуск отслеживания ориентации через API Telegram WebApp
+    // deviceOrientation.start({ refresh_rate: 500 }, (ars) => {
+    //   updateOrientation()
+    // }) // Правильный способ запустить отслеживание
+
+    deviceOrientation.start({ refresh_rate: 500 })
+    updateOrientation() // Начинаем обновление данных в реальном времени
+
+    //updateOrientation() // Начинаем обновление данных в реальном времени
+  } else {
+    console.error('DeviceOrientation не доступен.')
+  }
+})
+
+onActivated(() => {
+  currentIndex.value = 0
+  timeLeft.value = gameSettings.gameTime
+})
+
+onBeforeUnmount(() => {
+  clearInterval(timerInterval.value)
+})
+
+const updateOrientation = () => {
+  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
+  if (deviceOrientation && deviceOrientation.gamma !== null) {
+    gamma.value = deviceOrientation.gamma || 0
+  }
+  // Запускаем следующий кадр обновления
+  requestAnimationFrame(updateOrientation)
+}
+
+const showNextQuestion = () => {
+  // Сброс состояния ответа перед показом следующего вопроса
+  answerStatus.value = '' // Сбросить статус ответа
+  currentAnswerColor.value = '#FFD106' // Вернуть исходный цвет
+
+  if (currentIndex.value < props.questions.length) {
+    currentQuestion.value = props.questions[currentIndex.value]
+  } else {
+    currentQuestion.value = null
+  }
+}
+
+//===================================================
+
+let position = ref(0) // 0 - undefined, 1 - default, 2 - up (incorrect), -1 - down (correct)
+let incorrectPosition = ref(true)
+const zero = 1.5
+let gamma = ref(0)
+let _currentProcess = 'startGame'
+
+watch(gamma, newGamma => {
+  const _gamma = Math.abs(newGamma)
+  const isTiltedDown = _gamma < zero - 0.6
+  const isTiltedUp = _gamma > zero + 0.6
+  const isCentered = _gamma > zero - 0.3 && _gamma < zero + 0.3
+  if (isTiltedDown) {
+    position.value = -1 // Наклон вниз (пропустить)
+  } else if (isTiltedUp) {
+    position.value = 2 // Наклон вверх (правильно)
+  } else if (isCentered) {
+    position.value = 1 // В центре
+  } else {
+    position.value = 0 // undefined
+  }
+
+  if (_currentProcess === 'startGame') {
+    if (isCentered) {
+      incorrectPosition.value = false
+      if (!isQuizActive.value) {
+        startQuiz()
+        _currentProcess = 'gameInProgress'
+        showQuestionParagraph.value = true
+      }
+    } else {
+      incorrectPosition.value = true
+      showQuestionParagraph.value = false
+    }
+  }
+
+  if (_currentProcess === 'nextQuestion') {
+    if (isCentered) {
+      incorrectPosition.value = false
+      if (currentIndex.value < props.questions.length - 1) {
+        currentIndex.value++ // Индекс увеличивается
+        showNextQuestion() // Показать следующий вопрос
+        _currentProcess = 'gameInProgress'
+        showQuestionParagraph.value = true
+      } else {
+        _currentProcess = 'gameEnded'
+        currentQuestion.value = null // Завершаем викторину
+        //emit('gameEnded') // Сообщаем родителю, что игра закончена
+      }
+    } else {
+      incorrectPosition.value = true
+    }
+  }
+
+  if (_currentProcess === 'gameInProgress') {
+    if (isTiltedDown) {
+      // incorrect
+      answerStatus.value = 'incorrect'
+      currentAnswerColor.value = '#FC5F55'
+      _currentProcess = 'gameInPause'
+      setTimeout(() => {
+        _currentProcess = 'nextQuestion'
+        showQuestionParagraph.value = false
+        updateOrientation()
+      }, 1000)
+    } else if (isTiltedUp) {
+      // correct
+      answerStatus.value = 'correct'
+      currentAnswerColor.value = '#4CD964'
+      if (currentQuestion.value !== null) {
+        correctAnswers.value++
+      }
+      _currentProcess = 'gameInPause'
+      setTimeout(() => {
+        _currentProcess = 'nextQuestion'
+        showQuestionParagraph.value = false
+        updateOrientation()
+      }, 1000)
+    }
+  }
+})
+//=====================================================
+const startQuiz = () => {
+  isQuizActive.value = true
+  currentIndex.value = 0
+  correctAnswers.value = 0
+  showNextQuestion()
+  timeLeft.value = gameSettings.gameTime
+  startTimer()
+}
+
+//=====================================================
+
+const fontSize = ref(40) // Начальный размер шрифта
+const textRef = ref(null)
+
+// const adjustFontSize = () => {
+//   //const containerWidth = textRef?.value?.parentElement?.offsetWidth
+//   //const textWidth = textRef.value?.scrollWidth
+//   const containerWidth = window.width() - 64
+//   const textWidth = textRef.value?.width
+//   while (textWidth > containerWidth && fontSize.value > 30) {
+//     fontSize.value--
+//   }
+// }
+
+// watch(currentQuestion.value?.question, () => {
+//   adjustFontSize()
+// })
+
+// const textRefWidth = computed(() => {
+//   return textRef.value?.scrollWidth
+// })
+// const containerWidth = computed(() => {
+//   return window.width() - 64
+// })
+</script>
 <template>
   <div class="container">
     <!-- v-if="currentQuestion" -->
@@ -162,6 +395,7 @@
         <p>{{ $t('out_of_cards', { cards: totalQuestions }) }}</p>
       </div>
       <router-link
+        v-if="props.categoryId !== null"
         :to="{ name: 'Category', params: { id: props.categoryId } }"
         class="btn btn-yellow-transparent"
         >{{ $t('play_this_deck_again') }}
@@ -173,243 +407,6 @@
   </div>
 </template>
 
-<script setup>
-import {
-  ref,
-  watch,
-  onMounted,
-  onBeforeUnmount,
-  onActivated,
-  computed,
-} from 'vue'
-import { useGameSettingsStore } from '@/stores/gameSettings'
-
-//==========================
-const gameSettings = useGameSettingsStore()
-
-//const emit = defineEmits(['gameEnded'])
-
-// Таймер отсчета
-let timeLeft = ref(gameSettings.gameTime)
-const timerInterval = ref(null)
-
-// Форматирование времени для отображения
-const formattedTime = computed(() => {
-  const minutes = Math.floor(timeLeft.value / 60)
-  const seconds = timeLeft.value % 60
-  return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
-})
-
-// Начало отсчета времени
-const startTimer = () => {
-  timerInterval.value = setInterval(() => {
-    if (timeLeft.value > 0) {
-      timeLeft.value--
-    } else {
-      clearInterval(timerInterval.value)
-      // Завершаем игру, когда время истекло
-      _currentProcess = 'gameEnded'
-      currentQuestion.value = null // Можно здесь реализовать завершение игры
-      //emit('gameEnded') // Сообщаем об окончании игры
-    }
-  }, 1000)
-}
-//==========================
-
-const props = defineProps({
-  questions: {
-    type: Array,
-    required: true,
-  },
-  categoryId: {
-    type: String,
-    required: true,
-  },
-})
-
-const currentQuestion = ref(null)
-const currentAnswerColor = ref('#FFD106')
-const answerStatus = ref('') // 'correct' | 'incorrect' | ''
-const currentIndex = ref(0)
-const showQuestionParagraph = ref(false)
-
-const correctAnswers = ref(0)
-const totalQuestions = ref(props.questions.length) // Инициализируем здесь
-const isQuizActive = ref(false) // Флаг для активности викторины
-
-// Подсчет текущего номера вопроса и общего количества
-const questionProgress = computed(() => {
-  return `${currentIndex.value + 1}/${props.questions.length}`
-})
-const questionProgressBar = computed(
-  () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%', // `${currentIndex.value + 1}/${props.questions.length}`,
-)
-
-onMounted(() => {
-  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
-  if (deviceOrientation) {
-    // Запуск отслеживания ориентации через API Telegram WebApp
-    deviceOrientation.start({ refresh_rate: 500 }, () => {
-      updateOrientation()
-    }) // Правильный способ запустить отслеживание
-    //updateOrientation() // Начинаем обновление данных в реальном времени
-  } else {
-    console.error('DeviceOrientation не доступен.')
-  }
-})
-
-onActivated(() => {
-  currentIndex.value = 0
-  timeLeft.value = gameSettings.gameTime
-})
-
-onBeforeUnmount(() => {
-  clearInterval(timerInterval.value)
-})
-
-const updateOrientation = () => {
-  const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
-  if (deviceOrientation && deviceOrientation.gamma !== null) {
-    gamma.value = deviceOrientation.gamma || 0
-  }
-  // Запускаем следующий кадр обновления
-  requestAnimationFrame(updateOrientation)
-}
-
-const showNextQuestion = () => {
-  // Сброс состояния ответа перед показом следующего вопроса
-  answerStatus.value = '' // Сбросить статус ответа
-  currentAnswerColor.value = '#FFD106' // Вернуть исходный цвет
-
-  if (currentIndex.value < props.questions.length) {
-    currentQuestion.value = props.questions[currentIndex.value]
-  } else {
-    currentQuestion.value = null
-  }
-}
-
-//===================================================
-
-let gamma = ref(0)
-let position = ref(0) // 0 - undefined, 1 - default, 2 - up (incorrect), -1 - down (correct)
-let incorrectPosition = ref(true)
-
-const zero = 1.5
-
-let _currentProcess = 'startGame'
-
-watch(gamma, newGamma => {
-  const _gamma = Math.abs(newGamma)
-  const isTiltedDown = _gamma < zero - 0.6
-  const isTiltedUp = _gamma > zero + 0.6
-  const isCentered = _gamma > zero - 0.3 && _gamma < zero + 0.3
-
-  if (isTiltedDown) {
-    position.value = -1 // Наклон вниз (пропустить)
-  } else if (isTiltedUp) {
-    position.value = 2 // Наклон вверх (правильно)
-  } else if (isCentered) {
-    position.value = 1 // В центре
-  } else {
-    position.value = 0 // undefined
-  }
-
-  if (_currentProcess === 'startGame') {
-    if (isCentered) {
-      incorrectPosition.value = false
-      if (!isQuizActive.value) {
-        startQuiz()
-        _currentProcess = 'gameInProgress'
-        showQuestionParagraph.value = true
-      }
-    } else {
-      incorrectPosition.value = true
-      showQuestionParagraph.value = false
-    }
-  }
-
-  if (_currentProcess === 'nextQuestion') {
-    if (isCentered) {
-      incorrectPosition.value = false
-      if (currentIndex.value < props.questions.length - 1) {
-        currentIndex.value++ // Индекс увеличивается
-        showNextQuestion() // Показать следующий вопрос
-        _currentProcess = 'gameInProgress'
-        showQuestionParagraph.value = true
-      } else {
-        _currentProcess = 'gameEnded'
-        currentQuestion.value = null // Завершаем викторину
-        //emit('gameEnded') // Сообщаем родителю, что игра закончена
-      }
-    } else {
-      incorrectPosition.value = true
-    }
-  }
-
-  if (_currentProcess === 'gameInProgress') {
-    if (isTiltedDown) {
-      // incorrect
-      answerStatus.value = 'incorrect'
-      currentAnswerColor.value = '#FC5F55'
-      _currentProcess = 'gameInPause'
-      setTimeout(() => {
-        _currentProcess = 'nextQuestion'
-        showQuestionParagraph.value = false
-        updateOrientation()
-      }, 1000)
-    } else if (isTiltedUp) {
-      // correct
-      answerStatus.value = 'correct'
-      currentAnswerColor.value = '#4CD964'
-      if (currentQuestion.value !== null) {
-        correctAnswers.value++
-      }
-      _currentProcess = 'gameInPause'
-      setTimeout(() => {
-        _currentProcess = 'nextQuestion'
-        showQuestionParagraph.value = false
-        updateOrientation()
-      }, 1000)
-    }
-  }
-})
-//=====================================================
-
-const startQuiz = () => {
-  isQuizActive.value = true
-  currentIndex.value = 0
-  correctAnswers.value = 0
-  showNextQuestion()
-  timeLeft.value = gameSettings.gameTime
-  startTimer()
-}
-
-//=====================================================
-
-const fontSize = ref(40) // Начальный размер шрифта
-const textRef = ref(null)
-
-// const adjustFontSize = () => {
-//   //const containerWidth = textRef?.value?.parentElement?.offsetWidth
-//   //const textWidth = textRef.value?.scrollWidth
-//   const containerWidth = window.width() - 64
-//   const textWidth = textRef.value?.width
-//   while (textWidth > containerWidth && fontSize.value > 30) {
-//     fontSize.value--
-//   }
-// }
-
-// watch(currentQuestion.value?.question, () => {
-//   adjustFontSize()
-// })
-
-// const textRefWidth = computed(() => {
-//   return textRef.value?.scrollWidth
-// })
-// const containerWidth = computed(() => {
-//   return window.width() - 64
-// })
-</script>
 <style scoped lang="scss">
 .quiz-container {
   display: flex;
