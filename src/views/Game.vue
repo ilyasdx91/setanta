@@ -5,7 +5,7 @@
       <p>
         {{ $t('wrong_orientation') }}
       </p>
-    </div>
+    </div> 
 
     <!-- Игровой интерфейс -->
     <div v-else>

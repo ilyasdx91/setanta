@@ -56,9 +56,9 @@ const answerStatus = ref('') // 'correct' | 'incorrect' | ''
 const currentIndex = ref(0)
 const showQuestionParagraph = ref(false)
 const correctAnswers = ref(0)
-const totalQuestions = ref(props.questions.length) // Инициализируем здесь
+const shownQuestions = ref([]) // Массив для хранения показанных вопросов
 const isQuizActive = ref(false) // Флаг для активности викторины
-let initialFontSize = 3
+let initialFontSize = 3 
 
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
@@ -117,6 +117,13 @@ const showNextQuestion = () => {
   } else {
     currentQuestion.value = null
   }
+}
+
+function addQuestion(question, answer) {
+  shownQuestions.value.push({
+    question, // question: question
+    answer,   // answer: answer
+  });
 }
 
 //===================================================
@@ -178,6 +185,9 @@ watch(gamma, newGamma => {
     if (isTiltedDown) {
       // incorrect
       answerStatus.value = 'incorrect'
+
+      addQuestion(currentQuestion.value.question, 'incorrect');
+      
       currentAnswerColor.value = '#FC5F55'
       _currentProcess = 'gameInPause'
       setTimeout(() => {
@@ -188,6 +198,7 @@ watch(gamma, newGamma => {
     } else if (isTiltedUp) {
       // correct
       answerStatus.value = 'correct'
+      addQuestion(currentQuestion.value.question, 'correct');
       currentAnswerColor.value = '#4CD964'
       if (currentQuestion.value !== null) {
         correctAnswers.value++
@@ -415,9 +426,14 @@ const adjustFontSize = (newQuestion) => {
         </i>
       </router-link>
       <div class="msg">
-        <i>🥳</i>
+        <!-- <i>🥳</i> -->
         <h6>{{ $t('you_got_cards', { cards: correctAnswers }) }}</h6>
-        <p>{{ $t('out_of_cards', { cards: totalQuestions }) }}</p>
+        <!-- <p>{{ $t('out_of_cards', { cards: totalQuestions }) }}</p> -->
+         <ul>
+          <li v-for="(item,index) in shownQuestions" :key="index" :class="item.answer === 'correct' ? 'active' : ''">
+            {{ item.question }}
+          </li>
+         </ul>
       </div>
       <router-link
         v-if="props.categoryId !== null"
@@ -578,6 +594,19 @@ const adjustFontSize = (newQuestion) => {
     p {
       font-size: 16px;
       font-weight: 500;
+    }
+
+    ul{
+      text-align: center;
+      li{
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: #fff;
+        opacity: 0.4;
+        &.active{
+          opacity: 1;
+        }
+      }
     }
   }
 
