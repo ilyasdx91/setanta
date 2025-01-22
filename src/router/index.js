@@ -4,7 +4,8 @@ import Category from '@/views/Category.vue'
 import Game from '@/views/Game.vue'
 import Settings from '@/views/Settings.vue'
 import Faq from '@/views/Faq.vue'
-
+import Lang from '@/views/Lang.vue'   
+  
 const routes = [
   {
     path: '/',
@@ -27,6 +28,12 @@ const routes = [
     path: '/settings',
     name: 'Settings',
     component: Settings,
+    props: true,
+  },
+  {
+    path: '/lang',
+    name: 'Lang',
+    component: Lang,
     props: true,
   },
   {

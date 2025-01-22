@@ -50,6 +50,43 @@ body {
   }
 }
 
+.side-bar{
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  bottom: 0;
+  width: 187px;
+  transform: translateX(-207px);
+  transition: all 0.3s ease-in-out;
+  background: #181818;
+  padding-top: 120px;
+  &.active{
+    transform: translateX(-16px);
+    .close{
+      margin-right: -30px;
+    }
+  }
+
+  .close{
+    position: absolute;
+    right:0;
+    margin-right: 0;
+  }
+
+  ul{
+    li{
+      border-bottom: 1px solid #363636;
+      a{
+        display: block;
+        font-weight: 500;
+        font-size: 12px;
+        color: #fff;
+        padding: 16px;
+      }
+    }
+  }
+}
+
 .welcome {
   display: flex;
   align-items: center;
