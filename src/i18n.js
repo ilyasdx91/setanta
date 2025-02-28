@@ -25,6 +25,7 @@ const messages = {
     play_this_deck_again: 'Play this deck again',
     you_got_cards: 'You got {cards} cards!',
     out_of_cards: 'out of {cards} cards',
+    enable_sounds: 'Enable sounds',
   },
   ua: {
     categories: 'Категорії',
@@ -49,6 +50,7 @@ const messages = {
     play_this_deck_again: 'Зіграйте цю колоду ще раз',
     you_got_cards: 'У вас {cards} карток!',
     out_of_cards: 'з {cards} карт',
+    enable_sounds: 'Увімкнути звуки',
   },
 }
 

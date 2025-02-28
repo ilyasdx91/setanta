@@ -22,6 +22,8 @@ import { onMounted } from 'vue'
 //import { reactive, onMounted, onUnmounted, ref } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 import { useCategoriesStore } from '@/stores/categories.js'
+//import { useGameSettingsStore } from '@/stores/gameSettings'
+//const gameSettings = useGameSettingsStore()
 
 const route = useRoute()
 const categoriesStore = useCategoriesStore()
@@ -29,5 +31,9 @@ const categoriesStore = useCategoriesStore()
 onMounted(async () => {
   categoriesStore.clearCategory()
   await categoriesStore.fetchCategory(route.params.id)
+  // if (gameSettings.sounds) {
+  //   const audio = new Audio(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
+  //   audio.play()
+  // }
 })
 </script>

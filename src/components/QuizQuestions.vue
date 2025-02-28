@@ -7,9 +7,8 @@ import {
   ref,
   watch
 } from 'vue'
-import { useGameSettingsStore } from '@/stores/gameSettings' //==========================
+import { useGameSettingsStore } from '@/stores/gameSettings'
 
-//==========================
 const gameSettings = useGameSettingsStore()
 //const emit = defineEmits(['gameEnded'])
 
@@ -58,7 +57,7 @@ const showQuestionParagraph = ref(false)
 const correctAnswers = ref(0)
 const shownQuestions = ref([]) // Массив для хранения показанных вопросов
 const isQuizActive = ref(false) // Флаг для активности викторины
-let initialFontSize = 3 
+let initialFontSize = 3
 
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
@@ -141,8 +140,16 @@ watch(gamma, newGamma => {
   const isCentered = _gamma > zero - 0.3 && _gamma < zero + 0.3
   if (isTiltedDown) {
     position.value = -1 // Наклон вниз (пропустить)
+    if (gameSettings.sounds) {
+      const audio = new Audio(new URL('@/assets/sounds/not_right.mp3', import.meta.url).href)
+      audio.play()
+    }
   } else if (isTiltedUp) {
     position.value = 2 // Наклон вверх (правильно)
+    if (gameSettings.sounds) {
+      const audio = new Audio(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
+      audio.play()
+    }
   } else if (isCentered) {
     position.value = 1 // В центре
   } else {
@@ -187,7 +194,7 @@ watch(gamma, newGamma => {
       answerStatus.value = 'incorrect'
 
       addQuestion(currentQuestion.value.question, 'incorrect');
-      
+
       currentAnswerColor.value = '#FC5F55'
       _currentProcess = 'gameInPause'
       setTimeout(() => {

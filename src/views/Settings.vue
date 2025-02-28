@@ -20,6 +20,16 @@
 
       <h1>{{ $t('settings') }}</h1>
       <hr />
+      <div class="sounds-settings">
+        <h6>{{ $t('enable_sounds') }}</h6>
+
+        <label class="switch">
+          <input type="checkbox" v-model="gameSettings.sounds">
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <hr />
       <h6>{{ $t('round_duration') }}</h6>
       <div class="time-settings">
         <button @click="decreaseTime" class="btn">
@@ -64,9 +74,11 @@
 <script setup>
 
 import { useGameSettingsStore } from '@/stores/gameSettings'
-import { computed } from 'vue'
+import { computed,ref } from 'vue'
 
 const gameSettings = useGameSettingsStore()
+
+//const sounds = ref(false)
 
 // Форматируем время в минуты:секунды
 const formattedTime = computed(() => {
