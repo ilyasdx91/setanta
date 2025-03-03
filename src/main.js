@@ -21,4 +21,7 @@ app.use(i18n)
 app.use(router)
 app.use(VueTelegramPlugin)
 
+const _audioContext = window.AudioContext || window.webkitAudioContext
+app.config.globalProperties.audioCtx = _audioContext
+
 app.mount('#app')

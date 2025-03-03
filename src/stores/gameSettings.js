@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useGameSettingsStore = defineStore('gameSettings', {
   state: () => ({
-    gameTime: 30, // Время по умолчанию в секундах (30 секунд)
+    gameTime: 60, // Время по умолчанию в секундах (30 секунд)
     language: 'en', // Язык по умолчанию
     sounds: true, // Язык по умолчанию
   }),

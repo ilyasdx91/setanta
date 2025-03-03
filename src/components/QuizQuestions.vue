@@ -4,8 +4,7 @@ import {
   onActivated,
   onBeforeUnmount,
   onMounted,
-  ref,
-  watch
+  ref
 } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
 
@@ -28,6 +27,13 @@ const startTimer = () => {
   timerInterval.value = setInterval(() => {
     if (timeLeft.value > 0) {
       timeLeft.value--
+      if (timeLeft.value === 10 && gameSettings.sounds) {
+        try {
+          const audio = new Audio(new URL('@/assets/sounds/end_game.mp3', import.meta.url).href)
+          audio.play()
+        } catch { /* empty */
+        }
+      }
     } else {
       clearInterval(timerInterval.value)
       // Завершаем игру, когда время истекло
@@ -99,7 +105,11 @@ onBeforeUnmount(() => {
 const updateOrientation = () => {
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation && deviceOrientation.gamma !== null) {
+    const olgGamma = gamma.value
     gamma.value = deviceOrientation.gamma || 0
+    if (olgGamma !== gamma.value) {
+      gammaWatcher(olgGamma, gamma.value)
+    }
   }
   // Запускаем следующий кадр обновления
   requestAnimationFrame(updateOrientation)
@@ -121,8 +131,8 @@ const showNextQuestion = () => {
 function addQuestion(question, answer) {
   shownQuestions.value.push({
     question, // question: question
-    answer,   // answer: answer
-  });
+    answer   // answer: answer
+  })
 }
 
 //===================================================
@@ -133,23 +143,19 @@ const zero = 1.5
 let gamma = ref(0)
 let _currentProcess = 'startGame'
 
-watch(gamma, newGamma => {
+/*watch(gamma, newGamma => {
+  gammaWatcher(gamma, newGamma)
+})*/
+
+const gammaWatcher = (gamma, newGamma) => {
   const _gamma = Math.abs(newGamma)
   const isTiltedDown = _gamma < zero - 0.6
   const isTiltedUp = _gamma > zero + 0.6
   const isCentered = _gamma > zero - 0.3 && _gamma < zero + 0.3
   if (isTiltedDown) {
     position.value = -1 // Наклон вниз (пропустить)
-    if (gameSettings.sounds) {
-      const audio = new Audio(new URL('@/assets/sounds/not_right.mp3', import.meta.url).href)
-      audio.play()
-    }
   } else if (isTiltedUp) {
     position.value = 2 // Наклон вверх (правильно)
-    if (gameSettings.sounds) {
-      const audio = new Audio(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
-      audio.play()
-    }
   } else if (isCentered) {
     position.value = 1 // В центре
   } else {
@@ -193,32 +199,52 @@ watch(gamma, newGamma => {
       // incorrect
       answerStatus.value = 'incorrect'
 
-      addQuestion(currentQuestion.value.question, 'incorrect');
+      addQuestion(currentQuestion.value.question, 'incorrect')
 
       currentAnswerColor.value = '#FC5F55'
       _currentProcess = 'gameInPause'
+
+      if (gameSettings.sounds) {
+        try {
+          const audio = new Audio(new URL('@/assets/sounds/not_right.mp3', import.meta.url).href)
+          audio.play()
+        } catch { /* empty */
+        }
+      }
+
       setTimeout(() => {
         _currentProcess = 'nextQuestion'
         showQuestionParagraph.value = false
         updateOrientation()
-      }, 1000)
+      }, 400)
     } else if (isTiltedUp) {
       // correct
       answerStatus.value = 'correct'
-      addQuestion(currentQuestion.value.question, 'correct');
+      addQuestion(currentQuestion.value.question, 'correct')
       currentAnswerColor.value = '#4CD964'
       if (currentQuestion.value !== null) {
         correctAnswers.value++
       }
       _currentProcess = 'gameInPause'
+
+      if (gameSettings.sounds) {
+        try {
+          if (gameSettings.sounds) {
+            const audio = new Audio(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
+            audio.play()
+          }
+        } catch { /* empty */
+        }
+      }
+
       setTimeout(() => {
         _currentProcess = 'nextQuestion'
         showQuestionParagraph.value = false
         updateOrientation()
-      }, 1000)
+      }, 400)
     }
   }
-})
+}
 //=====================================================
 const startQuiz = () => {
   isQuizActive.value = true
@@ -436,11 +462,11 @@ const adjustFontSize = (newQuestion) => {
         <!-- <i>🥳</i> -->
         <h6>{{ $t('you_got_cards', { cards: correctAnswers }) }}</h6>
         <!-- <p>{{ $t('out_of_cards', { cards: totalQuestions }) }}</p> -->
-         <ul>
+        <ul>
           <li v-for="(item,index) in shownQuestions" :key="index" :class="item.answer === 'correct' ? 'active' : ''">
             {{ item.question }}
           </li>
-         </ul>
+        </ul>
       </div>
       <router-link
         v-if="props.categoryId !== null"
@@ -603,14 +629,16 @@ const adjustFontSize = (newQuestion) => {
       font-weight: 500;
     }
 
-    ul{
+    ul {
       text-align: center;
-      li{
+
+      li {
         font-size: 14px;
         margin-bottom: 10px;
         color: #fff;
         opacity: 0.4;
-        &.active{
+
+        &.active {
           opacity: 1;
         }
       }
