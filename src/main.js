@@ -12,6 +12,10 @@ import { VueTelegramPlugin } from 'vue-tg'
 
 import Header from './components/Header.vue'
 
+import { getAudioContext } from '@/audio.js'
+
+getAudioContext()
+
 const app = createApp(App)
 
 app.component('Header', Header)
@@ -20,8 +24,5 @@ app.use(createPinia())
 app.use(i18n)
 app.use(router)
 app.use(VueTelegramPlugin)
-
-const _audioContext = window.AudioContext || window.webkitAudioContext
-app.config.globalProperties.audioCtx = _audioContext
 
 app.mount('#app')

@@ -5,43 +5,40 @@
 </template>
 
 <script setup>
-import { Howl } from 'howler'
 import { onMounted, ref } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings.js'
+import { getAudioContext, playAudioContext } from '@/audio.js'
 
 const gameSettings = useGameSettingsStore()
+const audioCtx = getAudioContext()
 
 // Объявляем событие с помощью defineEmits
 const emit = defineEmits(['countdownFinished'])
 
 const counter = ref(3)
 
-const playAudio = (audioBuffer)=>{
-  const source = this.audioCtx.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(this.audioCtx.destination);
-  source.start();
-}
+let countdownBuffer = void 0
 
 onMounted(() => {
-  let yodelBuffer = void 0;
   window.fetch(new URL('@/assets/sounds/countdown.mp3', import.meta.url).href)
     .then(response => response.arrayBuffer())
-    .then(arrayBuffer => this.audioCtx.decodeAudioData(arrayBuffer,
+    .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer,
       audioBuffer => {
-        yodelBuffer = audioBuffer;
+        countdownBuffer = audioBuffer
       },
       error =>
         console.error(error)
-    ))
+    )).then(() => {
+    startAll()
+  })
+})
+
+const startAll = () => {
   if (gameSettings.sounds && counter.value === 3) {
     try {
-      /*const audio = new Howl({
-        src: [new URL('@/assets/sounds/countdown.mp3', import.meta.url).href]
-      });*/
       //const audio = new Audio(new URL('@/assets/sounds/countdown.mp3', import.meta.url).href)
       //audio.play()
-      playAudio(yodelBuffer);
+      playAudioContext(countdownBuffer)
     } catch { /* empty */
     }
   }
@@ -50,11 +47,9 @@ onMounted(() => {
       counter.value--
       if (gameSettings.sounds && counter.value > 0) {
         try {
-          const audio = new Howl({
-            src: [new URL('@/assets/sounds/countdown.mp3', import.meta.url).href]
-          });
           //const audio = new Audio(new URL('@/assets/sounds/countdown.mp3', import.meta.url).href)
-          audio.play()
+          //audio.play()
+          playAudioContext(countdownBuffer)
         } catch { /* empty */
         }
       }
@@ -65,8 +60,7 @@ onMounted(() => {
       clearInterval(timer)
     }
   }, 1000)
-
-})
+}
 </script>
 
 <style scoped>

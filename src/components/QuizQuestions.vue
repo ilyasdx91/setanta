@@ -7,6 +7,7 @@ import {
   ref
 } from 'vue'
 import { useGameSettingsStore } from '@/stores/gameSettings'
+import { getAudioContext, playAudioContext } from '@/audio.js'
 
 const gameSettings = useGameSettingsStore()
 //const emit = defineEmits(['gameEnded'])
@@ -29,8 +30,9 @@ const startTimer = () => {
       timeLeft.value--
       if (timeLeft.value === 10 && gameSettings.sounds) {
         try {
-          const audio = new Audio(new URL('@/assets/sounds/end_game.mp3', import.meta.url).href)
-          audio.play()
+          //const audio = new Audio(new URL('@/assets/sounds/end_game.mp3', import.meta.url).href)
+          //audio.play()
+          playAudioContext(endGameSoundBuffer)
         } catch { /* empty */
         }
       }
@@ -65,6 +67,8 @@ const shownQuestions = ref([]) // Массив для хранения пока�
 const isQuizActive = ref(false) // Флаг для активности викторины
 let initialFontSize = 3
 
+const audioCtx = getAudioContext()
+
 // Подсчет текущего номера вопроса и общего количества
 const questionProgress = computed(() => {
   return `${currentIndex.value + 1}/${props.questions.length}`
@@ -73,7 +77,38 @@ const questionProgressBar = computed(
   () => 100 - ((currentIndex.value + 1) / props.questions.length) * 100 + '%' // `${currentIndex.value + 1}/${props.questions.length}`,
 )
 
+let rightSoundBuffer = void 0
+let notRightSoundBuffer = void 0
+let endGameSoundBuffer = void 0
+
 onMounted(() => {
+  window.fetch(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
+    .then(response => response.arrayBuffer())
+    .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer,
+      audioBuffer => {
+        rightSoundBuffer = audioBuffer
+      },
+      error =>
+        console.error(error)
+    ))
+  window.fetch(new URL('@/assets/sounds/not_right.mp3', import.meta.url).href)
+    .then(response => response.arrayBuffer())
+    .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer,
+      audioBuffer => {
+        notRightSoundBuffer = audioBuffer
+      },
+      error =>
+        console.error(error)
+    ))
+  window.fetch(new URL('@/assets/sounds/end_game.mp3', import.meta.url).href)
+    .then(response => response.arrayBuffer())
+    .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer,
+      audioBuffer => {
+        endGameSoundBuffer = audioBuffer
+      },
+      error =>
+        console.error(error)
+    ))
   const deviceOrientation = window.Telegram?.WebApp?.DeviceOrientation
   if (deviceOrientation) {
     deviceOrientation.start({ refresh_rate: 500 })
@@ -206,8 +241,9 @@ const gammaWatcher = (gamma, newGamma) => {
 
       if (gameSettings.sounds) {
         try {
-          const audio = new Audio(new URL('@/assets/sounds/not_right.mp3', import.meta.url).href)
-          audio.play()
+          //const audio = new Audio(new URL('@/assets/sounds/not_right.mp3', import.meta.url).href)
+          //audio.play()
+          playAudioContext(notRightSoundBuffer)
         } catch { /* empty */
         }
       }
@@ -230,8 +266,9 @@ const gammaWatcher = (gamma, newGamma) => {
       if (gameSettings.sounds) {
         try {
           if (gameSettings.sounds) {
-            const audio = new Audio(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
-            audio.play()
+            //const audio = new Audio(new URL('@/assets/sounds/right.mp3', import.meta.url).href)
+            //audio.play()
+            playAudioContext(rightSoundBuffer)
           }
         } catch { /* empty */
         }

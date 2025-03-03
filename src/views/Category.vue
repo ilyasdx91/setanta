@@ -21,16 +21,18 @@
 <script setup>
 //import constants from '../constants.js'
 import { useRoute, useRouter } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 //import { reactive, onMounted, onUnmounted, ref } from 'vue'
 import CategoryHeader from '@/components/CategoryHeader.vue'
 import { useCategoriesStore } from '@/stores/categories.js'
 //import { useGameSettingsStore } from '@/stores/gameSettings'
 //const gameSettings = useGameSettingsStore()
+import { initAudioContext } from '@/audio.js'
 
 const route = useRoute()
 const router = useRouter()
 const categoriesStore = useCategoriesStore()
+//const audioCtx = getAudioContext()
 
 onMounted(async () => {
   categoriesStore.clearCategory()
@@ -42,28 +44,7 @@ onMounted(async () => {
 })
 
 const onStartClick = () => {
-  const gainNode = this.audioCtx.createGain()
-  gainNode.gain.value = 1
-  console.log('unlocking')
-  // create empty buffer and play it
-  const buffer = this.audioCtx.createBuffer(1, 1, 22050)
-  const source = this.audioCtx.createBufferSource()
-  source.buffer = buffer
-  source.connect(this.audioCtx.destination)
-  // play the file. noteOn is the older version of start()
-  source.start ? source.start(0) : source.noteOn(0)
-
-  // by checking the play state after some time, we know if we're really unlocked
-  setTimeout(function() {
-    if ((source.playbackState === source.PLAYING_STATE || source.playbackState === source.FINISHED_STATE)) {
-      //
-    }
-  }, 0)
-
+  initAudioContext()
   router.push({ name: 'Game' })
-  //const AudioContext = window.AudioContext || window.webkitAudioContext
-  //const context = new AudioContext()
-  // play the file. noteOn is the older version of start()
-  //source.start ? source.start(0) : source.noteOn(0);
 }
 </script>
